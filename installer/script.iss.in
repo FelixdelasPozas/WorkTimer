@@ -1,0 +1,40 @@
+; Mingw64 Distribution Inno Setup File
+
+[Setup]
+AppName=WorkTimer
+AppVersion=@WORKTIMER_VERSION_MAJOR@.@WORKTIMER_VERSION_MINOR@.@WORKTIMER_VERSION_PATCH@
+DefaultDirName={commonpf64}\WorkTimer
+DefaultGroupName=WorkTimer
+OutputDir=@PROJECT_BINARY_DIR@
+AppComments=WorkTimer
+AppContact=Felix de las Pozas Alvarez
+AppCopyright=(c)@CURRENT_YEAR@ Felix de las Pozas Alvarez
+AppPublisher=Felix de las Pozas Alvarez
+ArchitecturesAllowed=x64
+Compression=lzma2/ultra64
+CreateUninstallRegKey=yes
+Uninstallable=yes
+DisableFinishedPage=no
+DisableWelcomePage=no
+ChangesAssociations=no
+CloseApplications=yes
+UninstallDisplayIcon=@CMAKE_SOURCE_DIR@/rsc/clock.ico
+UninstallDisplayName=MultiAlarm v@WORKTIMER_VERSION_MAJOR@.@WORKTIMER_VERSION_MINOR@.@WORKTIMER_VERSION_PATCH@
+SourceDir=@PROJECT_BINARY_DIR@
+SetupIconFile=@CMAKE_SOURCE_DIR@/rsc/clock.ico
+OutputBaseFilename=WorkTimer_v@WORKTIMER_VERSION_MAJOR@.@WORKTIMER_VERSION_MINOR@.@WORKTIMER_VERSION_PATCH@_Setup
+WizardImageFile=@CMAKE_SOURCE_DIR@/installer/image.bmp
+WizardSmallImageFile=@CMAKE_SOURCE_DIR@/installer/smallimage.bmp
+
+[Files]
+Source: "WorkTimer.exe"; DestDir: "{app}";
+Source: "*.dll"; DestDir: "{app}";
+Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
+Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
+Source: "platforms/*.*"; DestDir: "{app}/platforms/";
+Source: "multimedia/*.*"; DestDir: "{app}/platforms/";
+Source: "styles/*.*"; DestDir: "{app}/platforms/";
+Source: "networkinformation/*.*"; DestDir: "{app}/platforms/";
+
+[Run]
+Filename: "{app}\WorkTimer.exe"; Description: "Launch WorkTimer"; Flags: postinstall nowait skipifsilent unchecked
