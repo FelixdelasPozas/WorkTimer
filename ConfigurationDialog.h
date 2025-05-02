@@ -22,6 +22,7 @@
 
 // Project
 #include "ui_ConfigurationDialog.h"
+#include <DesktopWidget.h>
 
 // Qt
 #include <QDialog>
@@ -92,7 +93,12 @@ class ConfigurationDialog : public QDialog, private Ui::ConfigurationDialog
      */
     void computePositions(const QRect& rect, const QString& screenName, QStringList& positionNames);
 
+    /** \brief Modifies the UI with the configuration data.
+     */
+    void setConfiguration(const Utils::Configuration &config);
+
     QList<QPoint> m_widgetPositions; /** possible fixed desktop widget positions. */
+    DesktopWidget m_widget;
 };
 
 #endif

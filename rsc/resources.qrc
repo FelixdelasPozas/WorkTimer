@@ -13,6 +13,8 @@
 	<file>quit.svg</file>
 	<file>stop.svg</file>
 	<file>warning.svg</file>
+	<file>minimize.svg</file>
+	<file>maximize.svg</file>
 	<file>qt.svg</file>
 	
 	<file>kofi_logo.png</file>

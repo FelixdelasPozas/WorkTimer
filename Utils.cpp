@@ -29,6 +29,9 @@
 #include <QDialog>
 #include <QWidget>
 
+// C++
+#include <iostream>
+
 const QString INI_FILENAME = "WorkTimer.ini";
 const QString WORKUNIT_TIME = "Work unit time";
 const QString SMALLBREAK_TIME = "Small break time";
@@ -88,8 +91,8 @@ void Utils::Configuration::load()
 {
     QSettings settings = applicationSettings();
     m_workUnitTime = settings.value(WORKUNIT_TIME, 25).toInt();
-    m_smallBreakTime = settings.value(SMALLBREAK_TIME, 5).toInt();
-    m_breakTime = settings.value(LARGEBREAK_TIME, 15).toInt();
+    m_shortBreakTime = settings.value(SMALLBREAK_TIME, 5).toInt();
+    m_longBreakTime = settings.value(LARGEBREAK_TIME, 15).toInt();
     m_unitsPerSession = settings.value(UNITS_IN_SESSION, 14).toInt();
     m_workColor = QColor::fromString(settings.value(WORK_COLOR, "#00FF00").toString());
     m_shortBreakColor = QColor::fromString(settings.value(SMALLBREAK_COLOR, "#FFFF00").toString());
@@ -106,8 +109,8 @@ void Utils::Configuration::save()
 {
     QSettings settings = applicationSettings();
     settings.setValue(WORKUNIT_TIME, m_workUnitTime);
-    settings.setValue(SMALLBREAK_TIME, m_smallBreakTime);
-    settings.setValue(LARGEBREAK_TIME, m_breakTime);
+    settings.setValue(SMALLBREAK_TIME, m_shortBreakTime);
+    settings.setValue(LARGEBREAK_TIME, m_longBreakTime);
     settings.setValue(UNITS_IN_SESSION, m_unitsPerSession);
     settings.setValue(WORK_COLOR, m_workColor.name());
     settings.setValue(SMALLBREAK_COLOR, m_shortBreakColor.name());
@@ -119,6 +122,24 @@ void Utils::Configuration::save()
     settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
 
     settings.sync();
+}
+
+//-----------------------------------------------------------------
+void Utils::Configuration::print() const
+{
+  std::cout << "Configuration ---------------------\n"
+            << "Work time " << m_workUnitTime << '\n'
+            << "Short time " << m_shortBreakTime << '\n'
+            << "Long time " << m_longBreakTime << '\n'
+            << "Work color " << m_workColor.name().toStdString() << '\n'
+            << "Short color " << m_shortBreakColor.name().toStdString() << '\n'
+            << "Long color " << m_longBreakColor.name().toStdString() << '\n'
+            << "Units in session " << m_unitsPerSession << '\n'
+            << "Use widget " << (m_useWidget ? " true":"false") << '\n'
+            << "Widget position " << m_widgetPosition.x() << "," << m_widgetPosition.y() << '\n'
+            << "Widget opacity " << m_widgetOpacity << '\n'
+            << "Use sound " << (m_useSound ? " true":"false") << '\n'
+            << "Tic-tac " << (m_continuousTicTac ? " true":"false") << std::endl;
 }
 
 //-----------------------------------------------------------------

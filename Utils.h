@@ -83,9 +83,13 @@ namespace Utils
          */
         void save();
 
+        /** \brief Prints the configuration to std::cout for debugging purposes.
+         */
+        void print() const;
+
         int m_workUnitTime = 25;                      /** minutes of a work unit. */
-        int m_smallBreakTime = 5;                     /** minutes of a small break. */
-        int m_breakTime = 15;                         /** minutes of a large break. */
+        int m_shortBreakTime = 5;                     /** minutes of a short break. */
+        int m_longBreakTime = 15;                     /** minutes of a long break. */
         int m_unitsPerSession = 14;                   /** number of work units per session. */
         QColor m_workColor = QColor(0, 1., 0);        /** color of work unit. */
         QColor m_shortBreakColor = QColor(1., 1., 0); /** color of short breaks. */

@@ -74,6 +74,7 @@
    <addaction name="actionStatistics"/>
    <addaction name="actionConfiguration"/>
    <addaction name="actionAbout_WorkTimer"/>
+   <addaction name="actionMinimize"/>
    <addaction name="actionQuit"/>
   </widget>
   <action name="actionTimer">
@@ -137,6 +138,21 @@
    </property>
    <property name="text">
     <string>Quit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionMinimize">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/minimize.svg</normaloff>:/WorkTimer/minimize.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Minimize to tray</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

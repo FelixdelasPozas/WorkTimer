@@ -178,6 +178,8 @@ void DesktopWidget::setName(const QString& name)
 //-----------------------------------------------------------------
 void DesktopWidget::paintEvent(QPaintEvent* e)
 {
+    if(!isVisible()) return;
+    
     QBrush brush(m_contrastColor, Qt::SolidPattern);
     const auto windowRect = rect();
 

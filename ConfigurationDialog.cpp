@@ -32,25 +32,23 @@ const QStringList DEFAULT_POSITIONS = {"Top Left",     "Top Center",  "Top Right
 
 //----------------------------------------------------------------------------
 ConfigurationDialog::ConfigurationDialog(const Utils::Configuration& config, QWidget* parent, Qt::WindowFlags f) :
-    QDialog{parent, f}
+    QDialog{parent, f}, m_widget{true, this}
 {
     setupUi(this);
-    connectSignals();
-
-    QPixmap icon(QSize(64, 64));
-    icon.fill(config.m_workColor);
-    workColorButton->setIcon(QIcon(icon));
-    workColorButton->setProperty("iconColor", config.m_workColor.name());
-
-    icon.fill(config.m_shortBreakColor);
-    shortColorButton->setIcon(QIcon(icon));
-    shortColorButton->setProperty("iconColor", config.m_shortBreakColor.name());
-
-    icon.fill(config.m_longBreakColor);
-    longColorButton->setIcon(QIcon(icon));
-    longColorButton->setProperty("iconColor", config.m_longBreakColor.name());
+    setConfiguration(config);
 
     computeWidgetPositions();
+
+    m_widget.setVisible(widgetCheckBox->isEnabled());
+    m_widget.setPosition(config.m_widgetPosition);
+    m_widget.setColor(config.m_workColor);
+    m_widget.setProgress(45);
+    m_widget.setName("Task name");
+    m_widget.setOpacity(opacitySpinBox->value());
+    auto it = std::find(m_widgetPositions.cbegin(), m_widgetPositions.cend(), config.m_widgetPosition);
+    positionComboBox->setCurrentIndex(it != m_widgetPositions.cend() ? std::distance(m_widgetPositions.cbegin(), it) : 0);
+
+    connectSignals();
     onWidgetCheckBoxChanged();
     onUseSoundCheckBoxChanged();
 }
@@ -58,8 +56,8 @@ ConfigurationDialog::ConfigurationDialog(const Utils::Configuration& config, QWi
 //----------------------------------------------------------------------------
 void ConfigurationDialog::onPositionChanged()
 {
-    if (positionComboBox->currentIndex() == 0) {
-        // TODO
+    if (positionComboBox->currentIndex() != 0) {
+        m_widget.setPosition(m_widgetPositions.at(positionComboBox->currentIndex()));
     }
 }
 
@@ -72,6 +70,8 @@ void ConfigurationDialog::onWidgetCheckBoxChanged()
     opacitySlider->setEnabled(enabled);
     opacitySpinBox->setEnabled(enabled);
     opacityLabel->setEnabled(enabled);
+
+    m_widget.setVisible(enabled);
 }
 
 //----------------------------------------------------------------------------
@@ -91,7 +91,7 @@ void ConfigurationDialog::showEvent(QShowEvent* e)
 //----------------------------------------------------------------------------
 void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
 {
-    config.m_breakTime = workSpinBox->value();
+    config.m_longBreakTime = workSpinBox->value();
     config.m_shortBreakColor = shortSpinBox->value();
     config.m_longBreakColor = longSpinBox->value();
     config.m_unitsPerSession = sessionSpinBox->value();
@@ -103,9 +103,8 @@ void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
     config.m_useSound = soundCheckBox->isChecked();
     config.m_continuousTicTac = ticTacCheckBox->isChecked();
 
-    // TODO
     const auto posIdx = positionComboBox->currentIndex();
-    const auto position = posIdx == 0 ? QPoint{0, 0} : m_widgetPositions.at(posIdx);
+    config.m_widgetPosition = posIdx == 0 ? QPoint{0, 0} : m_widgetPositions.at(posIdx);
 }
 
 //----------------------------------------------------------------------------
@@ -116,6 +115,9 @@ void ConfigurationDialog::connectSignals()
     connect(longColorButton, SIGNAL(pressed()), this, SLOT(onColorButtonClicked()));
     connect(widgetCheckBox, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(onWidgetCheckBoxChanged()));
     connect(soundCheckBox, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(onUseSoundCheckBoxChanged()));
+    connect(positionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onPositionChanged()));
+    connect(&m_widget, &DesktopWidget::beingDragged, this, [this](){ positionComboBox->setCurrentIndex(0); });
+    connect(opacitySpinBox, &QSpinBox::valueChanged, this, [this](int v){ m_widget.setOpacity(v); });
 }
 
 //----------------------------------------------------------------------------
@@ -173,4 +175,33 @@ void ConfigurationDialog::onColorButtonClicked()
     icon.fill(color);
     button->setIcon(QIcon(icon));
     button->setProperty("iconColor", color.name(QColor::HexArgb));
+}
+
+//----------------------------------------------------------------------------
+void ConfigurationDialog::setConfiguration(const Utils::Configuration &config)
+{
+    workSpinBox->setValue(config.m_workUnitTime);
+    shortSpinBox->setValue(config.m_shortBreakTime);
+    longSpinBox->setValue(config.m_longBreakTime);
+    sessionSpinBox->setValue(config.m_unitsPerSession);
+
+    QPixmap icon(QSize(64, 64));
+    icon.fill(config.m_workColor);
+    workColorButton->setIcon(QIcon(icon));
+    workColorButton->setProperty("iconColor", config.m_workColor.name());
+
+    icon.fill(config.m_shortBreakColor);
+    shortColorButton->setIcon(QIcon(icon));
+    shortColorButton->setProperty("iconColor", config.m_shortBreakColor.name());
+
+    icon.fill(config.m_longBreakColor);
+    longColorButton->setIcon(QIcon(icon));
+    longColorButton->setProperty("iconColor", config.m_longBreakColor.name());
+
+    widgetCheckBox->setChecked(config.m_useWidget);
+    opacitySlider->setValue(config.m_widgetOpacity);
+    opacitySpinBox->setValue(config.m_widgetOpacity);
+
+    soundCheckBox->setChecked(config.m_useSound);
+    ticTacCheckBox->setChecked(config.m_continuousTicTac);
 }
