@@ -100,11 +100,6 @@ class Alarm : public QObject
      */
     double precisionProgress() const;
 
-    /** \brief Returns the number of completed 1/8th intervals of the alarm completed.
-     *
-     */
-    unsigned int completedIntervals() const;
-
     /** \brief Returns the remaining time of the alarm.
      *
      */
@@ -126,12 +121,6 @@ class Alarm : public QObject
      */
     void tic();
 
-    /** \brief Signal launched every completed interval. (1/8 th of the duration of the alarm).
-     * \param[out] value completed intervals in range [1,8].
-     *
-     */
-    void interval(int value);
-
     /** \brief Signal launched at the end of the alarm.
      *
      */
@@ -150,7 +139,7 @@ class Alarm : public QObject
     void second();
 
   private:
-    /** \brief computes progress and completed intervals.
+    /** \brief Helper method to compute progress value.
      *
      */
     void computeProgressValues();
@@ -158,7 +147,6 @@ class Alarm : public QObject
     AlarmTime m_time;          /** duration of the timer/clock.                */
     AlarmTime m_remainingTime; /** remaining time of the timer/clock           */
     bool m_loop;               /** true to restart the alarm once it finishes. */
-    unsigned int m_intervals;  /** number of completed intervals.              */
     int m_progress;            /** completed time of the alarm.                */
     double m_dProgress;        /** completed time of the alarm with decimals.  */
     QTimer m_timer;            /** timer object.                               */

@@ -53,7 +53,6 @@ Alarm::Alarm(Alarm::AlarmTime time, bool loop) :
     m_time{time},
     m_remainingTime{time},
     m_loop{loop},
-    m_intervals{0},
     m_progress{0},
     m_dProgress{0}
 {
@@ -77,7 +76,6 @@ void Alarm::stop()
     if (m_timer.isActive()) {
         m_timer.stop();
 
-        m_intervals = 0;
         m_progress = 0;
         m_dProgress = 0;
         m_remainingTime = m_time;
@@ -125,7 +123,6 @@ const Alarm::AlarmTime Alarm::time() const
 //-----------------------------------------------------------------
 void Alarm::second()
 {
-    auto beforeIntervals = m_intervals;
     auto beforeProgress = m_progress;
 
     --m_remainingTime.seconds;
@@ -160,10 +157,6 @@ void Alarm::second()
 
     emit tic();
 
-    if (beforeIntervals != m_intervals) {
-        emit interval(m_intervals);
-    }
-
     if (beforeProgress != m_progress) {
         emit progress(m_progress);
     }
@@ -187,5 +180,4 @@ void Alarm::computeProgressValues()
 
     m_progress = 100 - static_cast<int>((100 * remaining) / static_cast<double>(totalTime));
     m_dProgress = 100.0 - (100 * remaining) / static_cast<double>(totalTime);
-    m_intervals = static_cast<int>(m_progress / static_cast<double>(100 / 8.0));
 }

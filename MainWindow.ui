@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WorkTimer</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="rsc/resources.qrc">
+    <normaloff>:/WorkTimer/clock.svg</normaloff>:/WorkTimer/clock.svg</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>3</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>3</number>
+    </property>
+    <property name="bottomMargin">
+     <number>3</number>
+    </property>
+    <item>
+     <widget class="QListView" name="m_list"/>
+    </item>
+    <item>
+     <widget class="ProgressWidget" name="m_progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>33</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionTimer"/>
+   <addaction name="actionStatistics"/>
+   <addaction name="actionConfiguration"/>
+   <addaction name="actionAbout_WorkTimer"/>
+   <addaction name="actionQuit"/>
+  </widget>
+  <action name="actionTimer">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/play.svg</normaloff>:/WorkTimer/play.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Timer</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionStatistics">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Statistics</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAbout_WorkTimer">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/info.svg</normaloff>:/WorkTimer/info.svg</iconset>
+   </property>
+   <property name="text">
+    <string>About WorkTimer...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionConfiguration">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/configuration.svg</normaloff>:/WorkTimer/configuration.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Configuration...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/quit.svg</normaloff>:/WorkTimer/quit.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ProgressWidget</class>
+   <extends>QProgressBar</extends>
+   <header location="global">ProgressWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="rsc/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

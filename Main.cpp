@@ -18,7 +18,7 @@
  */
 
 // Project
-//#include <WorkTimer.h>
+#include <MainWindow.h>
 
 // Qt
 #include <QApplication>
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     qInstallMessageHandler(myMessageOutput);
 
     QApplication app(argc, argv);
-    app.setQuitOnLastWindowClosed(false);
+    app.setQuitOnLastWindowClosed(true);
 
     // allow only one instance
     QSharedMemory guard;
@@ -63,8 +63,8 @@ int main(int argc, char* argv[])
         exit(0);
     }
 
-    // WorkTimer wTimer;
-    // wTimer.show();
+    MainWindow window;
+    window.show();
 
     auto resultValue = app.exec();
 

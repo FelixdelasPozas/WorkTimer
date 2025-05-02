@@ -23,6 +23,27 @@
 // Qt
 #include <QPainter>
 #include <QPainterPath>
+#include <QDir>
+#include <QFileInfo>
+#include <QCoreApplication>
+#include <QDialog>
+#include <QWidget>
+
+const QString INI_FILENAME = "WorkTimer.ini";
+const QString WORKUNIT_TIME = "Work unit time";
+const QString SMALLBREAK_TIME = "Small break time";
+const QString LARGEBREAK_TIME = "Large break time";
+const QString UNITS_IN_SESSION = "Units in session";
+const QString WORK_COLOR = "Work unit color";
+const QString SMALLBREAK_COLOR = "Small break color";
+const QString LARGEBREAK_COLOR = "Large break color";
+const QString DESKTOP_WIDGET = "Use desktop widget";
+const QString DESKTOP_OPACITY = "Desktop widget opacity";
+const QString DESKTOP_POSITION = "Desktop widget position";
+const QString SOUND_USE = "Use sounds";
+const QString SOUND_TIC_TAC = "Use continuous tic-tac";
+
+constexpr int DEFAULT_LOGICAL_DPI = 96;
 
 //-----------------------------------------------------------------
 Utils::ClickableHoverLabel::ClickableHoverLabel(QWidget* parent, Qt::WindowFlags f) :
@@ -60,4 +81,74 @@ void Utils::ClickableHoverLabel::leaveEvent(QEvent* event)
 {
     setCursor(Qt::ArrowCursor);
     QLabel::leaveEvent(event);
+}
+
+//-----------------------------------------------------------------
+void Utils::Configuration::load()
+{
+    QSettings settings = applicationSettings();
+    m_workUnitTime = settings.value(WORKUNIT_TIME, 25).toInt();
+    m_smallBreakTime = settings.value(SMALLBREAK_TIME, 5).toInt();
+    m_breakTime = settings.value(LARGEBREAK_TIME, 15).toInt();
+    m_unitsPerSession = settings.value(UNITS_IN_SESSION, 14).toInt();
+    m_workColor = QColor::fromString(settings.value(WORK_COLOR, "#00FF00").toString());
+    m_shortBreakColor = QColor::fromString(settings.value(SMALLBREAK_COLOR, "#FFFF00").toString());
+    m_longBreakColor = QColor::fromString(settings.value(LARGEBREAK_COLOR, "#0000FF").toString());
+    m_useWidget = settings.value(DESKTOP_WIDGET, true).toBool();
+    m_widgetOpacity = settings.value(DESKTOP_OPACITY, 75).toInt();
+    m_widgetPosition = settings.value(DESKTOP_POSITION, QPoint{0, 0}).toPoint();
+    m_useSound = settings.value(SOUND_USE, true).toBool();
+    m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
+}
+
+//-----------------------------------------------------------------
+void Utils::Configuration::save()
+{
+    QSettings settings = applicationSettings();
+    settings.setValue(WORKUNIT_TIME, m_workUnitTime);
+    settings.setValue(SMALLBREAK_TIME, m_smallBreakTime);
+    settings.setValue(LARGEBREAK_TIME, m_breakTime);
+    settings.setValue(UNITS_IN_SESSION, m_unitsPerSession);
+    settings.setValue(WORK_COLOR, m_workColor.name());
+    settings.setValue(SMALLBREAK_COLOR, m_shortBreakColor.name());
+    settings.setValue(LARGEBREAK_COLOR, m_longBreakColor.name());
+    settings.setValue(DESKTOP_WIDGET, m_useWidget);
+    settings.setValue(DESKTOP_OPACITY, m_widgetOpacity);
+    settings.setValue(DESKTOP_POSITION, m_widgetPosition);
+    settings.setValue(SOUND_USE, m_useSound);
+    settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
+
+    settings.sync();
+}
+
+//-----------------------------------------------------------------
+QSettings Utils::Configuration::applicationSettings() const
+{
+    QDir applicationDir{QCoreApplication::applicationDirPath()};
+    if (applicationDir.exists(INI_FILENAME)) {
+        const auto fInfo = QFileInfo(applicationDir.absoluteFilePath(INI_FILENAME));
+        qEnableNtfsPermissionChecks();
+        const auto isWritable = fInfo.isWritable();
+        qDisableNtfsPermissionChecks();
+
+        if (isWritable) {
+            return QSettings(applicationDir.absoluteFilePath(INI_FILENAME), QSettings::IniFormat);
+        }
+    }
+
+    return QSettings("Felix de las Pozas Alvarez", "WorkTimer");
+}
+
+//-----------------------------------------------------------------
+void Utils::scaleDialog(QDialog* window)
+{
+    if (window) {
+        const auto scale = (window->logicalDpiX() == DEFAULT_LOGICAL_DPI) ? 1. : 1.25;
+
+        window->setMaximumSize(QSize{QWIDGETSIZE_MAX, QWIDGETSIZE_MAX});
+        window->setMinimumSize(QSize{0, 0});
+
+        window->adjustSize();
+        window->setFixedSize(window->size() * scale);
+    }
 }

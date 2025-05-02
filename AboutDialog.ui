@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
+    <width>441</width>
     <height>346</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>525</width>
+    <width>441</width>
     <height>346</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>525</width>
+    <width>441</width>
     <height>346</height>
    </size>
   </property>
@@ -26,8 +26,8 @@
    <string>About...</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/MultiAlarm/information.svg</normaloff>:/MultiAlarm/information.svg</iconset>
+   <iconset resource="rsc/resources.qrc">
+    <normaloff>:/WorkTimer/info.svg</normaloff>:/WorkTimer/info.svg</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -59,7 +59,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="rsc/resources.qrc">:/MultiAlarm/clock.svg</pixmap>
+          <pixmap resource="rsc/resources.qrc">:/WorkTimer/clock.svg</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -204,7 +204,7 @@ QGroupBox::title {
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap resource="rsc/resources.qrc">:/MultiAlarm/qt.svg</pixmap>
+           <pixmap resource="rsc/resources.qrc">:/WorkTimer/qt.svg</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -318,7 +318,7 @@ QGroupBox::title {
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="rsc/resources.qrc">:/MultiAlarm/kofi_logo.png</pixmap>
+        <pixmap resource="rsc/resources.qrc">:/WorkTimer/kofi_logo.png</pixmap>
        </property>
       </widget>
      </item>

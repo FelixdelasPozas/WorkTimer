@@ -58,6 +58,8 @@ qt6_wrap_ui(CORE_UI
   # .ui for Qt
   AboutDialog.ui
   WorkStatistics.ui
+  MainWindow.ui
+  ConfigurationDialog.ui
 )
 	
 set (CORE_SOURCES
@@ -73,6 +75,9 @@ set (CORE_SOURCES
   WorkTimer.cpp
   WorkStatistics.cpp
   Utils.cpp
+  MainWindow.cpp
+  ProgressWidget.cpp
+  ConfigurationDialog.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

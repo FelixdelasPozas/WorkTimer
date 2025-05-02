@@ -24,6 +24,9 @@
 #include <QLabel>
 #include <QFrame>
 #include <QColor>
+#include <QSettings>
+
+class QDialog;
 
 namespace Utils
 {
@@ -64,6 +67,46 @@ namespace Utils
         virtual void enterEvent(QEnterEvent* event) override;
         virtual void leaveEvent(QEvent* event) override;
     };
+
+    /** \class Configuration
+     * \brief Implements a progress bar that represents the progres in the session.
+     *
+     */
+    class Configuration
+    {
+      public:
+        /** \brief Load configuration of the application from an ini file or the registry.
+         */
+        void load();
+
+        /** \brief Saves the configuration of the application to an ini file or the registry.
+         */
+        void save();
+
+        int m_workUnitTime = 25;                      /** minutes of a work unit. */
+        int m_smallBreakTime = 5;                     /** minutes of a small break. */
+        int m_breakTime = 15;                         /** minutes of a large break. */
+        int m_unitsPerSession = 14;                   /** number of work units per session. */
+        QColor m_workColor = QColor(0, 1., 0);        /** color of work unit. */
+        QColor m_shortBreakColor = QColor(1., 1., 0); /** color of short breaks. */
+        QColor m_longBreakColor = QColor(0, 0, 1.);   /** color of long breaks. */
+        bool m_useWidget = true;                      /** true to show the desktop widget and false otherwise. */
+        int m_widgetOpacity = 75;                     /** desktop widget opacity in [10,100]. */
+        QPoint m_widgetPosition = QPoint{0, 0};       /** position of the desktop widget. */
+        bool m_useSound = true;                       /** true to use sounds and false otherwise. */
+        bool m_continuousTicTac = false;              /** true to use the continuous tic-tac sound during work units. */
+
+      private:
+        /** \brief Helper method that returns the QSettings object to use.
+         */
+        QSettings applicationSettings() const;
+    };
+
+    /** \brief Helper method to scale the dialog and mininize its size.
+     * \param[in] dialog Dialog to scale.
+     *
+     */
+    void scaleDialog(QDialog* dialog);
 } // namespace Utils
 
 #endif // UTILS_H_

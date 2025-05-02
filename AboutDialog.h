@@ -46,6 +46,9 @@ class AboutDialog : public QDialog, public Ui::AboutDialog
      */
     virtual ~AboutDialog() {};
 
+  protected:
+    virtual void showEvent(QShowEvent *) override;
+
   private:
     static const QString VERSION; /** application version string. */
 };

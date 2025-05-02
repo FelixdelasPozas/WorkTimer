@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MultiAlarm/clock.svg</normaloff>:/MultiAlarm/clock.svg</iconset>
+    <normaloff>:/WorkTimer/clock.svg</normaloff>:/WorkTimer/clock.svg</iconset>
   </property>
   <property name="modal">
    <bool>false</bool>
@@ -128,7 +128,7 @@
        </property>
        <property name="icon">
         <iconset resource="rsc/resources.qrc">
-         <normaloff>:/MultiAlarm/pencil.svg</normaloff>:/MultiAlarm/pencil.svg</iconset>
+         <normaloff>:/WorkTimer/pencil.svg</normaloff>:/WorkTimer/pencil.svg</iconset>
        </property>
        <property name="popupMode">
         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
