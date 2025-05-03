@@ -57,7 +57,6 @@ qt6_add_resources(RESOURCES
 qt6_wrap_ui(CORE_UI
   # .ui for Qt
   AboutDialog.ui
-  WorkStatistics.ui
   MainWindow.ui
   ConfigurationDialog.ui
 )
@@ -73,7 +72,6 @@ set (CORE_SOURCES
   Alarm.cpp
   DesktopWidget.cpp
   WorkTimer.cpp
-  WorkStatistics.cpp
   Utils.cpp
   MainWindow.cpp
   ProgressWidget.cpp

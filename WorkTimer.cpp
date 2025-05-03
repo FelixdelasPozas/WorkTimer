@@ -51,9 +51,9 @@ WorkTimer::WorkTimer() :
 
     connect(&m_progressTimer, SIGNAL(timeout()), this, SLOT(updateProgress()), Qt::QueuedConnection);
 
-    m_tictac.setSource(QUrl::fromLocalFile(":/DesktopCapture/sounds/tictac.wav"));
-    m_crank.setSource(QUrl::fromLocalFile(":/DesktopCapture/sounds/crank.wav"));
-    m_ring.setSource(QUrl::fromLocalFile(":/DesktopCapture/sounds/deskbell.wav"));
+    m_tictac.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/tictac.wav"));
+    m_crank.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/crank.wav"));
+    m_ring.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/deskbell.wav"));
 }
 
 //-----------------------------------------------------------------

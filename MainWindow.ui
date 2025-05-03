@@ -35,7 +35,49 @@
      <number>3</number>
     </property>
     <item>
-     <widget class="QListView" name="m_list"/>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="icon">
+        <iconset resource="rsc/resources.qrc">
+         <normaloff>:/WorkTimer/pencil.svg</normaloff>:/WorkTimer/pencil.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Work units</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QListWidget" name="listWidget"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="icon">
+        <iconset resource="rsc/resources.qrc">
+         <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Statistics</string>
+       </attribute>
+      </widget>
+     </widget>
     </item>
     <item>
      <widget class="ProgressWidget" name="m_progressBar">
@@ -71,7 +113,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionTimer"/>
-   <addaction name="actionStatistics"/>
+   <addaction name="actionStop"/>
    <addaction name="actionConfiguration"/>
    <addaction name="actionAbout_WorkTimer"/>
    <addaction name="actionMinimize"/>
@@ -87,21 +129,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionStatistics">
-   <property name="icon">
-    <iconset resource="rsc/resources.qrc">
-     <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Statistics</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -153,6 +180,24 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="rsc/resources.qrc">
+     <normaloff>:/WorkTimer/stop.svg</normaloff>:/WorkTimer/stop.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Stop</string>
+   </property>
+   <property name="toolTip">
+    <string>Stops the current unit.</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

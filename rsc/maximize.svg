@@ -40,17 +40,20 @@
      stroke-width="2.3902"
      stroke-linecap="round"
      stroke-linejoin="round"
-     id="path1" />
+     id="path1"
+     style="fill:#000000;fill-opacity:0;stroke:#006699;stroke-opacity:1" />
   <path
      d="m 16.780371,12 v -1.195093 l 1.19e-4,-2.9877311 v 0 c 0,-0.3300128 -0.267702,-0.5975462 -0.597666,-0.5975462 v 0 H 13.195093 12"
      stroke="#323232"
      stroke-width="2.3902"
      stroke-linecap="round"
      stroke-linejoin="round"
-     id="path2" />
+     id="path2"
+     style="fill:#000000;fill-opacity:0;stroke:#006699;stroke-opacity:1" />
   <path
      d="M 22.755833,12 C 22.755833,17.940327 17.940327,22.755833 12,22.755833 6.0597206,22.755833 1.244167,17.940327 1.244167,12 1.244167,6.0597206 6.0597206,1.244167 12,1.244167 17.940327,1.244167 22.755833,6.0597206 22.755833,12 Z"
      stroke="#323232"
      stroke-width="2.3902"
-     id="path3" />
+     id="path3"
+     style="fill:#000000;fill-opacity:0;stroke:#006699;stroke-opacity:1" />
 </svg>

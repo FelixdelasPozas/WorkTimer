@@ -175,6 +175,9 @@ void ConfigurationDialog::onColorButtonClicked()
     icon.fill(color);
     button->setIcon(QIcon(icon));
     button->setProperty("iconColor", color.name(QColor::HexArgb));
+
+    const auto workColor = QColor(workColorButton->property("iconColor").toString());
+    m_widget.setColor(workColor);
 }
 
 //----------------------------------------------------------------------------

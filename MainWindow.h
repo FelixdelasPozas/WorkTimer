@@ -23,6 +23,8 @@
 // Project
 #include "ui_MainWindow.h"
 #include <Utils.h>
+#include <WorkTimer.h>
+#include <DesktopWidget.h>
 
 // Qt
 #include <QMainWindow>
@@ -48,14 +50,22 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void connectSignals();
 
+    /** \brief Applies the current configuration to the UI, widget and timer.
+     *
+     */
+    void applyConfiguration();
+
   private slots:
-    void startWorkTimer();
     void showAbout();
-    void showStatistics();
     void openConfiguration();
+    void onPlayClicked();
+    void onStopClicked();
+    void onMinimizeClicked();
 
   private:
     Utils::Configuration m_configuration; /** application configuration. */
+    DesktopWidget        m_widget;        /** desktop widget. */
+    WorkTimer            m_timer;         /** work timer. */
 };
 
 #endif

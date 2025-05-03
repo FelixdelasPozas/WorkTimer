@@ -189,7 +189,7 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
 
     painter.setBrush(brush);
     painter.setPen(m_contrastColor);
-    painter.drawRoundedRect(windowRect, 20, 20);
+    painter.drawRoundedRect(windowRect, 30, 30);
 
     brush.setColor(m_color);
     brush.setStyle(Qt::SolidPattern);

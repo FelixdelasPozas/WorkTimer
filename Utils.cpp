@@ -125,24 +125,6 @@ void Utils::Configuration::save()
 }
 
 //-----------------------------------------------------------------
-void Utils::Configuration::print() const
-{
-  std::cout << "Configuration ---------------------\n"
-            << "Work time " << m_workUnitTime << '\n'
-            << "Short time " << m_shortBreakTime << '\n'
-            << "Long time " << m_longBreakTime << '\n'
-            << "Work color " << m_workColor.name().toStdString() << '\n'
-            << "Short color " << m_shortBreakColor.name().toStdString() << '\n'
-            << "Long color " << m_longBreakColor.name().toStdString() << '\n'
-            << "Units in session " << m_unitsPerSession << '\n'
-            << "Use widget " << (m_useWidget ? " true":"false") << '\n'
-            << "Widget position " << m_widgetPosition.x() << "," << m_widgetPosition.y() << '\n'
-            << "Widget opacity " << m_widgetOpacity << '\n'
-            << "Use sound " << (m_useSound ? " true":"false") << '\n'
-            << "Tic-tac " << (m_continuousTicTac ? " true":"false") << std::endl;
-}
-
-//-----------------------------------------------------------------
 QSettings Utils::Configuration::applicationSettings() const
 {
     QDir applicationDir{QCoreApplication::applicationDirPath()};

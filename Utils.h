@@ -83,10 +83,6 @@ namespace Utils
          */
         void save();
 
-        /** \brief Prints the configuration to std::cout for debugging purposes.
-         */
-        void print() const;
-
         int m_workUnitTime = 25;                      /** minutes of a work unit. */
         int m_shortBreakTime = 5;                     /** minutes of a short break. */
         int m_longBreakTime = 15;                     /** minutes of a long break. */

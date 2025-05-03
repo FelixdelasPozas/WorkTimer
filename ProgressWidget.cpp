@@ -88,8 +88,8 @@ void ProgressWidget::paintEvent(QPaintEvent*)
     painter.setBrush(QBrush(Qt::transparent));
     painter.drawRect(0, 0, width(), height());
 
-    painter.setPen(Qt::black);
-    painter.setBrush(QBrush(Qt::black));
+    painter.setPen(Qt::white);
+    painter.setBrush(QBrush(Qt::white));
     painter.drawText(0, 0, width(), height(), Qt::AlignCenter, QString::number(value()) + "%");
     painter.end();
 }
