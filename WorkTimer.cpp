@@ -48,6 +48,7 @@ WorkTimer::WorkTimer() :
 {
     m_timer.setSingleShot(true);
     m_progressTimer.setSingleShot(false);
+    m_progressTimer.setInterval(1000);
 
     connect(&m_progressTimer, SIGNAL(timeout()), this, SLOT(updateProgress()), Qt::QueuedConnection);
 
@@ -135,8 +136,6 @@ void WorkTimer::startWorkUnit()
     m_timer.setInterval(m_workUnitTime);
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()), Qt::QueuedConnection);
-
-    m_progressTimer.setInterval(m_workUnitTime / 8);
     m_status = Status::Work;
 
     emit beginWorkUnit();
@@ -150,8 +149,6 @@ void WorkTimer::startShortBreak()
     m_timer.setInterval(m_shortBreakTime);
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endShortBreak()), Qt::QueuedConnection);
-
-    m_progressTimer.setInterval(m_shortBreakTime / 8);
     m_status = Status::ShortBreak;
 
     emit beginShortBreak();
@@ -165,8 +162,6 @@ void WorkTimer::startLongBreak()
     m_timer.setInterval(m_longBreakTime);
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()), Qt::QueuedConnection);
-
-    m_progressTimer.setInterval(m_longBreakTime / 8);
     m_status = Status::LongBreak;
 
     emit beginLongBreak();
@@ -212,24 +207,16 @@ void WorkTimer::pause()
         QTime time{0, 0, 0, 0};
         time = time.addMSecs(m_elapsedMSeconds);
         unsigned long mSeconds = 0;
-        unsigned long progressInterval = 0;
-        unsigned long progressMSeconds = 0;
 
         switch (oldStatus) {
             case Status::Work:
                 mSeconds = time.msecsTo(getWorkDuration());
-                progressInterval = m_workUnitTime / 8;
-                progressMSeconds = m_workUnitTime - m_elapsedMSeconds;
                 break;
             case Status::ShortBreak:
                 mSeconds = time.msecsTo(getShortBreakDuration());
-                progressInterval = m_shortBreakTime / 8;
-                progressMSeconds = m_shortBreakTime - m_elapsedMSeconds;
                 break;
             case Status::LongBreak:
                 mSeconds = time.msecsTo(getLongBreakDuration());
-                progressInterval = m_longBreakTime / 8;
-                progressMSeconds = m_longBreakTime - m_elapsedMSeconds;
                 break;
             default:
                 Q_ASSERT(false);
@@ -241,8 +228,6 @@ void WorkTimer::pause()
         m_timer.setInterval(mSeconds);
         m_timer.start();
 
-        progressMSeconds = progressMSeconds % progressInterval;
-        m_progressTimer.setInterval(progressMSeconds);
         m_progressTimer.start();
 
         if (m_continuousTicTac) {
@@ -352,34 +337,13 @@ void WorkTimer::setTaskTitle(QString taskTitle)
 //-----------------------------------------------------------------
 void WorkTimer::updateProgress()
 {
-    unsigned long interval = 0;
-    switch (m_status) {
-        case Status::Work:
-            m_icon = QIcon(QString(":/DesktopCapture/%1-red.ico").arg(m_progress));
-            interval = m_workUnitTime / 8;
-            break;
-        case Status::ShortBreak:
-            m_icon = QIcon(QString(":/DesktopCapture/%1-blue.ico").arg(m_progress));
-            interval = m_shortBreakTime / 8;
-            break;
-        case Status::LongBreak:
-            m_icon = QIcon(QString(":/DesktopCapture/%1-green.ico").arg(m_progress));
-            interval = m_longBreakTime / 8;
-            break;
-        default:
-            Q_ASSERT(false);
-            break;
+    const unsigned int currentProgress = (std::abs(m_timer.remainingTime() - m_timer.interval()) * 100.f) / m_timer.interval();
+
+    if(m_progress != currentProgress)
+    {
+        m_progress = currentProgress;
+        emit progress(m_progress);
     }
-
-    if (m_progressTimer.interval() < static_cast<int>(interval)) {
-        m_progressTimer.stop();
-        m_progressTimer.setInterval(interval);
-        m_progressTimer.start();
-    }
-
-    emit progress(m_progress);
-
-    ++m_progress;
 }
 
 //-----------------------------------------------------------------
@@ -391,7 +355,6 @@ void WorkTimer::endWorkUnit()
 
     if (m_numWorkUnits == m_sessionWorkUnits) {
         stop();
-        m_icon = QIcon(QString(":/DesktopCapture/0.ico"));
         emit sessionEnded();
         return;
     }

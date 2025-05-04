@@ -55,17 +55,27 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void applyConfiguration();
 
+    /** \brief Initalizes the task table.
+     *
+     */
+    void initTable();
+
   private slots:
     void showAbout();
     void openConfiguration();
     void onPlayClicked();
     void onStopClicked();
+    void onTaskNameClicked();
     void onMinimizeClicked();
+    void onProgressUpdated(unsigned int);
+    void onGlobalProgressUpdated();
 
   private:
     Utils::Configuration m_configuration; /** application configuration. */
-    DesktopWidget        m_widget;        /** desktop widget. */
-    WorkTimer            m_timer;         /** work timer. */
+    DesktopWidget m_widget;               /** desktop widget. */
+    WorkTimer m_timer;                    /** work timer. */
+    unsigned int m_globalProgress = 0;    /** current global progress in minutes in [0-totalMinutes] */
+    unsigned int m_totalMinutes = 0;      /** total minutes in the session including breaks. */
 };
 
 #endif
