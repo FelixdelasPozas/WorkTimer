@@ -26,6 +26,9 @@
 // Qt
 #include <QDateTime>
 #include <QInputDialog>
+#include <QEvent>
+#include <QMessageBox>
+#include <QCloseEvent>
 
 //----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
@@ -39,6 +42,8 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
     m_configuration.load();
 
     applyConfiguration();
+
+    initIconAndMenu();
 
     initTable();
 }
@@ -54,7 +59,7 @@ void MainWindow::connectSignals()
 {
     connect(actionTimer, SIGNAL(triggered(bool)), this, SLOT(onPlayClicked()));
     connect(actionStop, SIGNAL(triggered(bool)), this, SLOT(onStopClicked()));
-    connect(actionMinimize, SIGNAL(triggered(bool)), this, SLOT(onMinimizeClicked()));
+    connect(actionMinimize, SIGNAL(triggered(bool)), this, SLOT(close()));
     connect(actionAbout_WorkTimer, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
     connect(actionConfiguration, SIGNAL(triggered(bool)), this, SLOT(openConfiguration()));
     connect(actionQuit, SIGNAL(triggered(bool)), this, SLOT(close()));
@@ -78,12 +83,12 @@ void MainWindow::applyConfiguration()
     m_widget.setProgress(0);
     m_widget.setOpacity(m_configuration.m_widgetOpacity);
 
-    m_timer.setContinuousTicTac(m_configuration.m_continuousTicTac);
-    m_timer.setWorkUnitsBeforeBreak(2);
+    m_timer.setWorkUnitsBeforeBreak(4);
     m_timer.setLongBreakDuration(QTime{0, m_configuration.m_longBreakTime, 0, 0});
     m_timer.setShortBreakDuration(QTime{0, m_configuration.m_shortBreakTime, 0, 0});
     m_timer.setWorkDuration(QTime{0, m_configuration.m_workUnitTime, 0, 0});
     m_timer.setUseSounds(m_configuration.m_useSound);
+    m_timer.setContinuousTicTac(m_configuration.m_continuousTicTac);
     m_timer.setSessionWorkUnits(m_configuration.m_unitsPerSession);
 
     const int workMinutes = m_configuration.m_unitsPerSession * m_configuration.m_workUnitTime;
@@ -104,6 +109,101 @@ void MainWindow::initTable()
 }
 
 //----------------------------------------------------------------------------
+void MainWindow::initIconAndMenu()
+{
+    m_trayIcon = new QSystemTrayIcon{m_widget.asIcon(m_configuration.m_workUnitTime), this};
+    m_trayIcon->hide();
+
+    connect(m_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this,
+            SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
+
+    auto menu = new QMenu(tr("Menu"));
+
+    auto showAction = new QAction(QIcon(":/WorkTimer/maximize.svg"), tr("Restore..."));
+    connect(showAction, SIGNAL(triggered(bool)), this, SLOT(onTrayActivated()));
+
+    m_timerEntry = new QAction(QIcon(":/WorkTimer/play.svg"), tr("Start unit"));
+    connect(m_timerEntry, SIGNAL(triggered(bool)), this, SLOT(onPlayClicked()));
+
+    m_stopEntry = new QAction(QIcon(":/WorkTimer/stop.svg"), tr("Stop timer"));
+    connect(m_stopEntry, SIGNAL(triggered(bool)), this, SLOT(onStopClicked()));
+    m_stopEntry->setEnabled(false);
+
+    m_taskEntry = new QAction(QIcon(":/WorkTimer/pencil.svg"), tr("Change task..."));
+    connect(m_taskEntry, SIGNAL(triggered(bool)), this, SLOT(onTaskNameClicked()));
+    m_taskEntry->setEnabled(false);
+
+    auto aboutAction = new QAction(QIcon(":/WorkTimer/info.svg"), tr("About..."));
+    connect(aboutAction, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
+
+    auto quitAction = new QAction(QIcon(":/WorkTimer/quit.svg"), tr("Quit"));
+    connect(quitAction, SIGNAL(triggered(bool)), this, SLOT(quitApplication()));
+
+    menu->addAction(showAction);
+    menu->addSeparator();
+    menu->addAction(m_timerEntry);
+    menu->addAction(m_stopEntry);
+    menu->addAction(m_taskEntry);
+    menu->addSeparator();
+    menu->addAction(aboutAction);
+    menu->addSeparator();
+    menu->addAction(quitAction);
+
+    m_trayIcon->setContextMenu(menu);
+    m_trayIcon->setToolTip(m_timer.statusMessage());
+    m_trayIcon->hide();
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (m_trayIcon->isVisible() && reason == QSystemTrayIcon::DoubleClick) {
+        showNormal();
+        m_trayIcon->hide();
+    }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::quitApplication()
+{
+    m_needsExit = true;
+    if (this->isVisible()) {
+        close();
+    } else {
+        closeEvent(nullptr);
+    }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::closeEvent(QCloseEvent* e)
+{
+    if (!m_needsExit) {
+        hide();
+        m_trayIcon->show();
+
+        e->accept();
+    } else {
+        if (m_timer.status() != WorkTimer::Status::Stopped) {
+            QMessageBox msgBox{this};
+            msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+            msgBox.setIcon(QMessageBox::Icon::Information);
+            msgBox.setText("The timer is still running. Do you really want to exit?");
+            msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+            msgBox.setStandardButtons(QMessageBox::StandardButton::Cancel | QMessageBox::StandardButton::Ok);
+
+            if (msgBox.exec() != QMessageBox::Ok) {
+                return;
+            }
+        }
+
+        if (e) {
+            QMainWindow::closeEvent(e);
+        }
+        QApplication::exit(0);
+    }
+}
+
+//----------------------------------------------------------------------------
 void MainWindow::showAbout()
 {
     AboutDialog dialog;
@@ -119,12 +219,13 @@ void MainWindow::openConfiguration()
     }
 
     dialog.getConfiguration(m_configuration);
+    applyConfiguration();
 }
 
 //----------------------------------------------------------------------------
 void MainWindow::onPlayClicked()
 {
-    if (m_widget.getName().isEmpty()) {
+    if (m_table->rowCount() == 0) {
         onTaskNameClicked();
 
         if (m_table->rowCount() == 0) {
@@ -136,25 +237,31 @@ void MainWindow::onPlayClicked()
         case WorkTimer::Status::Stopped:
             m_timer.start();
             actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
+            m_timerEntry->setIcon(QIcon(":/WorkTimer/pause.svg"));
+            m_timerEntry->setText("Pause unit");
             actionStop->setEnabled(true);
+            m_stopEntry->setEnabled(true);
             break;
         case WorkTimer::Status::Work:
+        case WorkTimer::Status::ShortBreak:
+        case WorkTimer::Status::LongBreak:
             m_timer.pause();
             actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
-            break;
-        case WorkTimer::Status::ShortBreak:
-            break;
-        case WorkTimer::Status::LongBreak:
+            m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
+            m_timerEntry->setText("Start unit");
             break;
         case WorkTimer::Status::Paused:
             m_timer.pause();
-            actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
+            actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
+            m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
+            m_timerEntry->setText("Pause unit");
             break;
         default:
             break;
     }
 
     actionTask->setEnabled(true);
+    m_taskEntry->setEnabled(true);
     m_widget.setVisible(m_configuration.m_useWidget);
 }
 
@@ -165,6 +272,9 @@ void MainWindow::onStopClicked()
     actionStop->setEnabled(false);
     actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
     m_widget.setVisible(false);
+    m_widget.setProgress(0);
+    m_trayIcon->setToolTip(m_timer.statusMessage());
+    m_trayIcon->setIcon(m_widget.asIcon(m_configuration.m_workUnitTime));
 }
 
 //----------------------------------------------------------------------------
@@ -188,13 +298,12 @@ void MainWindow::onTaskNameClicked()
     m_timer.setTaskTitle(taskName);
 
     const auto rows = m_table->rowCount();
-    if(rows == 0 || m_table->item(rows-1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0)
-    {
+    if (rows == 0 || m_table->item(rows - 1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0) {
         m_table->insertRow(rows);
         auto item = new QTableWidgetItem(taskName);
         item->setTextAlignment(Qt::AlignCenter);
         m_table->setItem(rows, 0, item);
-        item = new QTableWidgetItem(QTime{0,0,0}.toString("mm:ss"));
+        item = new QTableWidgetItem(QTime{0, 0, 0}.toString("hh:mm:ss"));
         item->setTextAlignment(Qt::AlignCenter);
         m_table->setItem(rows, 1, item);
         item = new QTableWidgetItem("0");
@@ -204,30 +313,31 @@ void MainWindow::onTaskNameClicked()
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::onMinimizeClicked()
-{
-}
-
-//----------------------------------------------------------------------------
 void MainWindow::onProgressUpdated(unsigned int value)
 {
     m_widget.setProgress(value);
 
     unsigned int progressMinutes = 0;
+    unsigned int invMinutes = 0;
     switch (m_timer.status()) {
         default:
         case WorkTimer::Status::Work:
             progressMinutes = value / 100.f * m_configuration.m_workUnitTime;
+            invMinutes = m_configuration.m_workUnitTime - progressMinutes;
             break;
         case WorkTimer::Status::ShortBreak:
             progressMinutes = value / 100.f * m_configuration.m_shortBreakTime;
+            invMinutes = m_configuration.m_shortBreakTime - progressMinutes;
             break;
         case WorkTimer::Status::LongBreak:
             progressMinutes = value / 100.f * m_configuration.m_longBreakTime;
+            invMinutes = m_configuration.m_longBreakTime - progressMinutes;
             break;
     }
 
     m_progressBar->setValue(((m_globalProgress + progressMinutes) * 100) / m_totalMinutes);
+    m_trayIcon->setIcon(m_widget.asIcon(invMinutes));
+    m_trayIcon->setToolTip(m_timer.statusMessage() + "\nTask: " + m_timer.getTaskTitle());
 }
 
 //----------------------------------------------------------------------------
@@ -236,11 +346,17 @@ void MainWindow::onGlobalProgressUpdated()
     static WorkTimer::Status previousStatus = WorkTimer::Status::Stopped;
 
     switch (previousStatus) {
-        case WorkTimer::Status::Work:
+        case WorkTimer::Status::Work: {
             m_globalProgress += m_configuration.m_workUnitTime;
             m_widget.setColor(m_timer.status() == WorkTimer::Status::ShortBreak ? m_configuration.m_shortBreakColor
                                                                                 : m_configuration.m_longBreakColor);
-            break;
+            auto item = m_table->item(m_table->rowCount() - 1, 2);
+            auto numCompleted = atoi(item->text().toStdString().c_str());
+            item->setText(QString("%1").arg(++numCompleted));
+            item = m_table->item(m_table->rowCount() - 1, 1);
+            QTime duration{0, 0, 0};
+            item->setText(duration.addSecs(numCompleted * m_configuration.m_workUnitTime * 60).toString("hh:mm:ss"));
+        } break;
         case WorkTimer::Status::ShortBreak:
             m_globalProgress += m_configuration.m_shortBreakTime;
             m_widget.setColor(m_configuration.m_workColor);
@@ -249,13 +365,32 @@ void MainWindow::onGlobalProgressUpdated()
             m_globalProgress += m_configuration.m_longBreakTime;
             m_widget.setColor(m_configuration.m_workColor);
             break;
-        default:
         case WorkTimer::Status::Paused:
         case WorkTimer::Status::Stopped:
+            break;
+    }
+
+    unsigned int minutes = 0;
+    switch(m_timer.status())
+    {
+        case WorkTimer::Status::Stopped:
+        case WorkTimer::Status::Work:
+            minutes = m_configuration.m_workUnitTime;   
+            break;
+        case WorkTimer::Status::ShortBreak:
+            minutes = m_configuration.m_shortBreakTime;
+            break;
+        case WorkTimer::Status::LongBreak:
+            minutes = m_configuration.m_longBreakTime;
+            break;
+        default:
+        case WorkTimer::Status::Paused:
             break;
     }
 
     previousStatus = m_timer.status();
     m_widget.setProgress(0);
     m_progressBar->setValue((m_globalProgress * 100) / m_totalMinutes);
+    m_trayIcon->setIcon(m_widget.asIcon(minutes));
+    m_trayIcon->setToolTip(m_timer.statusMessage());
 }

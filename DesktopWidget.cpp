@@ -26,6 +26,7 @@
 #include <QMouseEvent>
 #include <QScreen>
 #include <QApplication>
+#include <QPixmap>
 
 const int DesktopWidget::WIDGET_SIZE = 100;
 
@@ -176,6 +177,23 @@ void DesktopWidget::setName(const QString& name)
 }
 
 //-----------------------------------------------------------------
+QIcon DesktopWidget::asIcon(unsigned int minutes)
+{
+    QPixmap image{QSize{128,128}};
+
+    QPainter painter;
+    painter.begin(&image);
+    paintHelper(painter, image.rect());
+
+    painter.setFont(QFont("Arial", 70));
+    painter.setPen(m_color.darker());
+    painter.drawText(image.rect(), Qt::AlignCenter, QString::number(minutes));
+    painter.end();
+
+    return QIcon(image);
+}
+
+//-----------------------------------------------------------------
 void DesktopWidget::paintEvent(QPaintEvent* e)
 {
     if(!isVisible()) return;
@@ -185,20 +203,9 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
 
     QPainter painter;
     painter.begin(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    painter.setBrush(brush);
-    painter.setPen(m_contrastColor);
-    painter.drawRoundedRect(windowRect, 30, 30);
-
-    brush.setColor(m_color);
-    brush.setStyle(Qt::SolidPattern);
-    painter.setPen(m_color);
-    painter.setBrush(brush);
+    paintHelper(painter, rect());
 
     auto smallRect = QRect{windowRect.x() + 5, windowRect.y() + 5, windowRect.width() - 10, windowRect.height() - 10};
-    const auto progressValue = (360.0 - 360.0 * (m_progress / 100.0)) * 16;
-    painter.drawPie(smallRect, 90 * 16, progressValue);
 
     QString displayText;
     auto parts = m_name.split(" ");
@@ -216,4 +223,25 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
     painter.setPen(m_contrastColor);
     painter.drawText(windowRect, Qt::AlignCenter, displayText);
     painter.end();
+}
+
+//-----------------------------------------------------------------
+void DesktopWidget::paintHelper(QPainter &painter, const QRect &windowRect)
+{
+    QBrush brush(m_contrastColor, Qt::SolidPattern);
+
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    painter.setBrush(brush);
+    painter.setPen(m_contrastColor);
+    painter.drawRoundedRect(windowRect, 30, 30);
+
+    brush.setColor(m_color);
+    brush.setStyle(Qt::SolidPattern);
+    painter.setPen(m_color);
+    painter.setBrush(brush);
+
+    auto smallRect = QRect{windowRect.x() + 5, windowRect.y() + 5, windowRect.width() - 10, windowRect.height() - 10};
+    const auto progressValue = (360.0 - 360.0 * (m_progress / 100.0)) * 16;
+    painter.drawPie(smallRect, 90 * 16, progressValue);
 }

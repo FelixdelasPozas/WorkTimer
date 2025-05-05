@@ -44,7 +44,7 @@ WorkTimer::WorkTimer() :
     m_continuousTicTac{false},
     m_sessionWorkUnits{12},
     m_useSounds{true},
-    m_elapsedMSeconds{0}
+    m_remainMS{0}
 {
     m_timer.setSingleShot(true);
     m_progressTimer.setSingleShot(false);
@@ -78,9 +78,8 @@ void WorkTimer::startTimers()
 {
     m_timer.start();
     m_progressTimer.start();
-    m_startTime = QDateTime::currentDateTime();
     m_progress = 0;
-    m_elapsedMSeconds = 0;
+    m_remainMS = 0;
     updateProgress();
 
     if (m_useSounds) {
@@ -119,6 +118,7 @@ void WorkTimer::stopTimers()
     // disconnect respective signals in the caller of this one.
     m_timer.stop();
     m_progressTimer.stop();
+    m_remainMS = 0;
 
     bool noSounds = (m_status == Status::Stopped || m_status == Status::Paused);
     if (m_useSounds && !noSounds) {
@@ -194,7 +194,7 @@ void WorkTimer::pause()
 
     if (Status::Paused != m_status) {
         // pause timers
-        m_elapsedMSeconds += m_startTime.msecsTo(QDateTime::currentDateTime());
+        m_remainMS = m_timer.remainingTime();
         oldStatus = m_status;
         m_status = Status::Paused;
         m_timer.stop();
@@ -204,29 +204,10 @@ void WorkTimer::pause()
         }
     } else {
         // resume
-        QTime time{0, 0, 0, 0};
-        time = time.addMSecs(m_elapsedMSeconds);
-        unsigned long mSeconds = 0;
-
-        switch (oldStatus) {
-            case Status::Work:
-                mSeconds = time.msecsTo(getWorkDuration());
-                break;
-            case Status::ShortBreak:
-                mSeconds = time.msecsTo(getShortBreakDuration());
-                break;
-            case Status::LongBreak:
-                mSeconds = time.msecsTo(getLongBreakDuration());
-                break;
-            default:
-                Q_ASSERT(false);
-        }
-
         m_status = oldStatus;
-
-        m_startTime = QDateTime::currentDateTime();
-        m_timer.setInterval(mSeconds);
+        m_timer.setInterval(m_remainMS);
         m_timer.start();
+        m_remainMS = 0;
 
         m_progressTimer.start();
 
@@ -239,11 +220,13 @@ void WorkTimer::pause()
 //-----------------------------------------------------------------
 unsigned int WorkTimer::elapsed() const
 {
-    if (Status::Paused == m_status) {
-        return m_elapsedMSeconds;
+    auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
+
+    if (Status::Paused != m_status) {
+        return QTime{0,0,0}.msecsTo(unitTime) - m_timer.remainingTime();
     }
 
-    return m_elapsedMSeconds + m_startTime.msecsTo(QDateTime::currentDateTime());
+    return QTime{0,0,0}.msecsTo(unitTime) - m_remainMS;
 }
 
 //-----------------------------------------------------------------
@@ -252,8 +235,6 @@ void WorkTimer::stop()
     if (Status::Stopped == m_status) {
         return;
     }
-
-    stopTimers();
 
     switch (m_status) {
         case Status::Work:
@@ -274,40 +255,8 @@ void WorkTimer::stop()
             break;
     }
 
+    stopTimers();
     m_status = Status::Stopped;
-}
-
-//-----------------------------------------------------------------
-void WorkTimer::invalidateCurrent()
-{
-    if (Status::Stopped == m_status) {
-        return;
-    }
-
-    if (Status::Paused != m_status) {
-        stopTimers();
-    }
-
-    switch (m_status) {
-        case Status::Work:
-            m_timer.disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()));
-            startWorkUnit();
-            break;
-        case Status::ShortBreak:
-            m_timer.disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endShortBreak()));
-            startShortBreak();
-            break;
-        case Status::LongBreak:
-            m_timer.disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()));
-            startLongBreak();
-            break;
-        case Status::Paused:
-            pause();
-            invalidateCurrent();
-            break;
-        default:
-            break;
-    }
 }
 
 //-----------------------------------------------------------------
@@ -337,7 +286,8 @@ void WorkTimer::setTaskTitle(QString taskTitle)
 //-----------------------------------------------------------------
 void WorkTimer::updateProgress()
 {
-    const unsigned int currentProgress = (std::abs(m_timer.remainingTime() - m_timer.interval()) * 100.f) / m_timer.interval();
+    auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
+    const unsigned int currentProgress = (std::abs(m_timer.remainingTime() - QTime{0,0,0}.msecsTo(unitTime)) * 100.f) / m_timer.interval();
 
     if(m_progress != currentProgress)
     {
@@ -398,16 +348,15 @@ void WorkTimer::endLongBreak()
 //-----------------------------------------------------------------
 void WorkTimer::setContinuousTicTac(bool value)
 {
-    if (m_status == Status::Stopped) {
-        m_continuousTicTac = value;
-        m_tictac.setLoopCount((value ? QSoundEffect::Infinite : 1));
+    m_continuousTicTac = value;
+    m_tictac.setLoopCount((value ? QSoundEffect::Infinite : 1));
+    if (m_status == Status::Work) {
+        if(value)
+            queueSound(Sound::TICTAC);
+        else
+            queueSound(Sound::NONE);
     }
-}
 
-//-----------------------------------------------------------------
-QIcon WorkTimer::icon() const
-{
-    return m_icon;
 }
 
 //-----------------------------------------------------------------
@@ -457,10 +406,10 @@ QTime WorkTimer::elapsedTime() const
 {
     QTime returnTime{0, 0, 0, 0};
     if (Status::Paused == m_status) {
-        returnTime = returnTime.addMSecs(m_elapsedMSeconds);
+        returnTime = returnTime.addMSecs(m_remainMS);
     } else {
         if (Status::Stopped != m_status) {
-            returnTime = returnTime.addMSecs(m_elapsedMSeconds + m_startTime.msecsTo(QDateTime::currentDateTime()));
+            returnTime = returnTime.addMSecs(m_timer.remainingTime());
         }
     }
 
@@ -517,6 +466,8 @@ void WorkTimer::queueSound(Sound sound)
 //-----------------------------------------------------------------
 void WorkTimer::playNextSound()
 {
+    if(m_playList.empty()) return;
+
     switch (m_playList.first()) {
         case Sound::CRANK:
             startTimer(LENGTH_CRANK);

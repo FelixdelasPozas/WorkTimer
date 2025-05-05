@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     qInstallMessageHandler(myMessageOutput);
 
     QApplication app(argc, argv);
-    app.setQuitOnLastWindowClosed(true);
+    app.setQuitOnLastWindowClosed(false);
 
     // allow only one instance
     QSharedMemory guard;

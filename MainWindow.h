@@ -28,6 +28,7 @@
 
 // Qt
 #include <QMainWindow>
+#include <QSystemTrayIcon>
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
@@ -43,6 +44,9 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      *
      */
     virtual ~MainWindow();
+
+  protected:
+    virtual void closeEvent(QCloseEvent *) override;
 
   private:
     /** \brief Helper method to connect signals to slots. 
@@ -60,15 +64,49 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void initTable();
 
+    /** \brief Initializes the tray icon and its menu.
+     *
+     */
+    void initIconAndMenu();
+
   private slots:
+    /** \brief Shows the About dialog.
+     */
     void showAbout();
+
+    /** \brief Opens the configuration dialog and applies it.
+     */
     void openConfiguration();
+
+    /** \brief Helper method to change the UI and start/pause the timer. 
+     */
     void onPlayClicked();
+
+    /** \brief Helper method to change the UI and stop the timer. 
+     */
     void onStopClicked();
+
+    /** \brief Helper method to change the task name and modify UI.
+     */
     void onTaskNameClicked();
-    void onMinimizeClicked();
-    void onProgressUpdated(unsigned int);
+
+    /** \brief Updates the application progress in the widgets and icon.
+     * \param[in] progress Progress value in [0,100]
+     */
+    void onProgressUpdated(unsigned int progress);
+
+    /** \brief Helper method to update the session progress value.
+     */
     void onGlobalProgressUpdated();
+
+    /** \brief Shows the main dialog when activated by the tray icon.
+     * \param[in] reason Activation reason.
+     */
+    void onTrayActivated(QSystemTrayIcon::ActivationReason reason = QSystemTrayIcon::DoubleClick);
+
+    /** \brief Helper method to help with application close.
+     */
+    void quitApplication();
 
   private:
     Utils::Configuration m_configuration; /** application configuration. */
@@ -76,6 +114,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     WorkTimer m_timer;                    /** work timer. */
     unsigned int m_globalProgress = 0;    /** current global progress in minutes in [0-totalMinutes] */
     unsigned int m_totalMinutes = 0;      /** total minutes in the session including breaks. */
+    QSystemTrayIcon* m_trayIcon;          /** tray icon. */
+    QAction *m_timerEntry;                /** tray menu entry for play/pause. */
+    QAction *m_stopEntry;                 /** tray menu entry for stop the timer. */
+    QAction *m_taskEntry;                 /** tray menu entry for changing the task name. */
+    bool m_needsExit = false;             /** true to exit application at close(), false otherwise. */
 };
 
 #endif

@@ -24,6 +24,9 @@
 #include <QWidget>
 #include <QColor>
 
+class QPainter;
+class QRect;
+
 /** \class DesktopWidget
  * \brief Widget to be on the desktop, invisible to events and always on top,
  *        showing the title and progression of the alarm.
@@ -74,6 +77,12 @@ class DesktopWidget : public QWidget
      */
     void setName(const QString& name);
 
+    /** \brief Returns the progress as an icon.
+     * \param[in] minutes Remaining minutes in the unit.
+     *
+     */
+    QIcon asIcon(unsigned int minutes);
+
   signals:
     void beingDragged();
 
@@ -84,6 +93,7 @@ class DesktopWidget : public QWidget
 
   private:
     virtual void paintEvent(QPaintEvent* e) override final;
+    void paintHelper(QPainter &, const QRect &windowRect);
 
     double m_progress;      /** progress of the widget in [0.0-100.0]. */
     QColor m_color;         /** color of the widget. */

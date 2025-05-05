@@ -72,11 +72,6 @@ class WorkTimer
      */
 		void stop();
 
-    /** \brief Restarts the current unit.
-     *
-     */
-		void invalidateCurrent();
-
     /** \brief Returns the elapsed time of the unit in milliseconds.
      *
      */
@@ -129,11 +124,6 @@ class WorkTimer
      *
      */
 		void setUseSounds(bool enabled);
-
-    /** \brief Returns the icon for the current unit and elapsed time.
-     *
-     */
-		QIcon icon() const;
 
     /** \brief Returns the duration of a work unit.
      *
@@ -330,13 +320,11 @@ class WorkTimer
     QTimer        m_timer;               /** Timer.                                                         */
     QTimer        m_progressTimer;       /** Timer used for progress notifications in 1/8 of the unit time. */
     unsigned int  m_progress;            /** Progress counter.                                              */
-    QIcon         m_icon;                /** Icon of actual situation.                                      */
     Status        m_status;              /** Actual status of the timer.                                    */
     bool          m_continuousTicTac;    /** Continuous tic-tac sound.                                      */
     unsigned int  m_sessionWorkUnits;    /** Number of work units in a session.                             */
     bool          m_useSounds;           /** Use sounds.                                                    */
-    QDateTime     m_startTime;           /** Start time of the last interval, used for pausing.             */
-    unsigned int  m_elapsedMSeconds;     /** Elapsed seconds since the last time m_timer started.           */
+    unsigned int  m_remainMS;         /** Elapsed seconds since the last time m_timer started.           */
     QMap<int, QString> m_completedTasks; /** Task names of completed work units.                            */
 
     QSoundEffect m_crank;  /** Crank sound      */
