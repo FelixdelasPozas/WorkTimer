@@ -180,6 +180,7 @@ void DesktopWidget::setName(const QString& name)
 QIcon DesktopWidget::asIcon(unsigned int minutes)
 {
     QPixmap image{QSize{128,128}};
+    image.fill(Qt::transparent);
 
     QPainter painter;
     painter.begin(&image);

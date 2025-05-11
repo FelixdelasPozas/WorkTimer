@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
 
     initIconAndMenu();
 
-    initTable();
+    initTables();
 }
 
 //----------------------------------------------------------------------------
@@ -62,20 +62,24 @@ void MainWindow::connectSignals()
     connect(actionMinimize, SIGNAL(triggered(bool)), this, SLOT(close()));
     connect(actionAbout_WorkTimer, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
     connect(actionConfiguration, SIGNAL(triggered(bool)), this, SLOT(openConfiguration()));
-    connect(actionQuit, SIGNAL(triggered(bool)), this, SLOT(close()));
+    connect(actionQuit, SIGNAL(triggered(bool)), this, SLOT(quitApplication()));
     connect(actionTask, SIGNAL(triggered(bool)), this, SLOT(onTaskNameClicked()));
     connect(&m_timer, SIGNAL(progress(unsigned int)), this, SLOT(onProgressUpdated(unsigned int)));
     connect(&m_timer, SIGNAL(sessionEnded()), this, SLOT(onStopClicked()));
 
-    connect(&m_timer, SIGNAL(beginWorkUnit()), this, SLOT(onGlobalProgressUpdated()));
-    connect(&m_timer, SIGNAL(beginShortBreak()), this, SLOT(onGlobalProgressUpdated()));
-    connect(&m_timer, SIGNAL(beginLongBreak()), this, SLOT(onGlobalProgressUpdated()));
+    connect(&m_timer, SIGNAL(workUnitEnded()), this, SLOT(onUnitEnded()));
+    connect(&m_timer, SIGNAL(shortBreakEnded()), this, SLOT(onUnitEnded()));
+    connect(&m_timer, SIGNAL(longBreakEnded()), this, SLOT(onUnitEnded()));
+    connect(&m_timer, SIGNAL(beginWorkUnit()), this, SLOT(onUnitStarted()));
+    connect(&m_timer, SIGNAL(beginShortBreak()), this, SLOT(onUnitStarted()));
+    connect(&m_timer, SIGNAL(beginLongBreak()), this, SLOT(onUnitStarted()));
 }
 
 //----------------------------------------------------------------------------
 void MainWindow::applyConfiguration()
 {
     qobject_cast<ProgressWidget*>(m_progressBar)->setConfiguration(m_configuration);
+    m_progressBar->repaint();
 
     m_widget.setVisible(false);
     m_widget.setPosition(m_configuration.m_widgetPosition);
@@ -98,14 +102,21 @@ void MainWindow::applyConfiguration()
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::initTable()
+void MainWindow::initTables()
 {
-    m_table->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
-    m_table->horizontalHeader()->setSectionsMovable(false);
-    m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    m_table->verticalHeader()->setVisible(false);
+    m_unitTable->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
+    m_unitTable->horizontalHeader()->setSectionsMovable(false);
+    m_unitTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_unitTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_unitTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_unitTable->verticalHeader()->setVisible(false);
+
+    m_taskTable->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
+    m_taskTable->horizontalHeader()->setSectionsMovable(false);
+    m_taskTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_taskTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_taskTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_taskTable->verticalHeader()->setVisible(false);
 }
 
 //----------------------------------------------------------------------------
@@ -225,10 +236,10 @@ void MainWindow::openConfiguration()
 //----------------------------------------------------------------------------
 void MainWindow::onPlayClicked()
 {
-    if (m_table->rowCount() == 0) {
+    if (m_taskTable->rowCount() == 0) {
         onTaskNameClicked();
 
-        if (m_table->rowCount() == 0) {
+        if (m_taskTable->rowCount() == 0) {
             return;
         }
     }
@@ -252,8 +263,8 @@ void MainWindow::onPlayClicked()
             break;
         case WorkTimer::Status::Paused:
             m_timer.pause();
-            actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
-            m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
+            actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
+            m_timerEntry->setIcon(QIcon(":/WorkTimer/pause.svg"));
             m_timerEntry->setText("Pause unit");
             break;
         default:
@@ -297,18 +308,18 @@ void MainWindow::onTaskNameClicked()
     m_widget.setName(taskName);
     m_timer.setTaskTitle(taskName);
 
-    const auto rows = m_table->rowCount();
-    if (rows == 0 || m_table->item(rows - 1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0) {
-        m_table->insertRow(rows);
+    const auto rows = m_taskTable->rowCount();
+    if (rows == 0 || m_taskTable->item(rows - 1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0) {
+        m_taskTable->insertRow(rows);
         auto item = new QTableWidgetItem(taskName);
         item->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(rows, 0, item);
+        m_taskTable->setItem(rows, 0, item);
         item = new QTableWidgetItem(QTime{0, 0, 0}.toString("hh:mm:ss"));
         item->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(rows, 1, item);
+        m_taskTable->setItem(rows, 1, item);
         item = new QTableWidgetItem("0");
         item->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(rows, 2, item);
+        m_taskTable->setItem(rows, 2, item);
     }
 }
 
@@ -341,56 +352,72 @@ void MainWindow::onProgressUpdated(unsigned int value)
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::onGlobalProgressUpdated()
+void MainWindow::onUnitEnded()
 {
-    static WorkTimer::Status previousStatus = WorkTimer::Status::Stopped;
-
-    switch (previousStatus) {
-        case WorkTimer::Status::Work: {
+    int row = 0;
+    int seconds = 0;
+    switch(m_timer.status())
+    {
+        case WorkTimer::Status::Work:
+        {
+            row = 1;
+            seconds = m_configuration.m_workUnitTime * 60;
             m_globalProgress += m_configuration.m_workUnitTime;
-            m_widget.setColor(m_timer.status() == WorkTimer::Status::ShortBreak ? m_configuration.m_shortBreakColor
-                                                                                : m_configuration.m_longBreakColor);
-            auto item = m_table->item(m_table->rowCount() - 1, 2);
+
+            auto item = m_taskTable->item(m_taskTable->rowCount()-1, 2);
             auto numCompleted = atoi(item->text().toStdString().c_str());
             item->setText(QString("%1").arg(++numCompleted));
-            item = m_table->item(m_table->rowCount() - 1, 1);
-            QTime duration{0, 0, 0};
-            item->setText(duration.addSecs(numCompleted * m_configuration.m_workUnitTime * 60).toString("hh:mm:ss"));
-        } break;
+            item = m_taskTable->item(m_taskTable->rowCount()-1, 1);
+            item->setText(QTime{0, 0, 0}.addSecs(numCompleted * seconds).toString("hh:mm:ss"));
+        }
+            break;
         case WorkTimer::Status::ShortBreak:
+            seconds = m_configuration.m_shortBreakTime * 60;
             m_globalProgress += m_configuration.m_shortBreakTime;
-            m_widget.setColor(m_configuration.m_workColor);
             break;
         case WorkTimer::Status::LongBreak:
+            seconds = m_configuration.m_longBreakTime * 60;
             m_globalProgress += m_configuration.m_longBreakTime;
-            m_widget.setColor(m_configuration.m_workColor);
             break;
-        case WorkTimer::Status::Paused:
         case WorkTimer::Status::Stopped:
+        case WorkTimer::Status::Paused:
             break;
     }
 
+    m_progressBar->setValue((m_globalProgress * 100) / m_totalMinutes);
+
+    auto item = m_unitTable->item(row, 2);
+    auto numCompleted = atoi(item->text().toStdString().c_str());
+    item->setText(QString("%1").arg(++numCompleted));
+    item = m_unitTable->item(row, 1);
+    item->setText(QTime{0, 0, 0}.addSecs(numCompleted * seconds).toString("hh:mm:ss"));
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::onUnitStarted()
+{
     unsigned int minutes = 0;
     switch(m_timer.status())
     {
         case WorkTimer::Status::Stopped:
         case WorkTimer::Status::Work:
             minutes = m_configuration.m_workUnitTime;   
+            m_widget.setColor(m_configuration.m_workColor);
             break;
         case WorkTimer::Status::ShortBreak:
             minutes = m_configuration.m_shortBreakTime;
+            m_widget.setColor(m_configuration.m_shortBreakColor);
             break;
         case WorkTimer::Status::LongBreak:
             minutes = m_configuration.m_longBreakTime;
+            m_widget.setColor(m_configuration.m_longBreakColor);
             break;
         default:
         case WorkTimer::Status::Paused:
             break;
     }
 
-    previousStatus = m_timer.status();
     m_widget.setProgress(0);
-    m_progressBar->setValue((m_globalProgress * 100) / m_totalMinutes);
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
     m_trayIcon->setToolTip(m_timer.statusMessage());
 }

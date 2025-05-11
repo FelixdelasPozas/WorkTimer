@@ -55,6 +55,7 @@ WorkTimer::WorkTimer() :
     m_tictac.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/tictac.wav"));
     m_crank.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/crank.wav"));
     m_ring.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/deskbell.wav"));
+    m_click.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/click.wav"));
 }
 
 //-----------------------------------------------------------------
@@ -80,7 +81,6 @@ void WorkTimer::startTimers()
     m_progressTimer.start();
     m_progress = 0;
     m_remainMS = 0;
-    updateProgress();
 
     if (m_useSounds) {
         queueSound(Sound::CRANK);
@@ -202,6 +202,7 @@ void WorkTimer::pause()
         if (m_continuousTicTac) {
             queueSound(Sound::NONE);
         }
+        queueSound(Sound::CLICK);
     } else {
         // resume
         m_status = oldStatus;
@@ -210,7 +211,7 @@ void WorkTimer::pause()
         m_remainMS = 0;
 
         m_progressTimer.start();
-
+        queueSound(Sound::CLICK);
         if (m_continuousTicTac) {
             queueSound(Sound::TICTAC);
         }
@@ -480,6 +481,10 @@ void WorkTimer::playNextSound()
         case Sound::TICTAC:
             startTimer(LENGTH_TICTAC);
             m_tictac.play();
+            break;
+        case Sound::CLICK:
+            startTimer(LENGTH_CLICK);
+            m_click.play();
             break;
         case Sound::NONE:
             if (m_tictac.loopCount() == QSoundEffect::Infinite) {

@@ -91,9 +91,9 @@ void ConfigurationDialog::showEvent(QShowEvent* e)
 //----------------------------------------------------------------------------
 void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
 {
-    config.m_longBreakTime = workSpinBox->value();
-    config.m_shortBreakColor = shortSpinBox->value();
-    config.m_longBreakColor = longSpinBox->value();
+    config.m_workUnitTime = workSpinBox->value();
+    config.m_shortBreakTime = shortSpinBox->value();
+    config.m_longBreakTime = longSpinBox->value();
     config.m_unitsPerSession = sessionSpinBox->value();
     config.m_workColor = QColor(workColorButton->property("iconColor").toString());
     config.m_shortBreakColor = QColor(shortColorButton->property("iconColor").toString());

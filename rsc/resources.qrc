@@ -22,5 +22,6 @@
 	<file>sounds/crank.wav</file>
 	<file>sounds/deskbell.wav</file>
 	<file>sounds/tictac.wav</file>
+	<file>sounds/click.wav</file>
   </qresource>
 </RCC>

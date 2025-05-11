@@ -51,13 +51,13 @@ int main(int argc, char* argv[])
 
     // allow only one instance
     QSharedMemory guard;
-    guard.setKey("MultiAlarm");
+    guard.setKey("WorkTimer");
 
     if (!guard.create(1)) {
         QMessageBox msgBox;
-        msgBox.setWindowIcon(QIcon(":/MultiAlarm/application.ico"));
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.ico"));
         msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText("MultiAlarm is already running!");
+        msgBox.setText("WorkTimer is already running!");
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         exit(0);

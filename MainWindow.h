@@ -62,7 +62,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     /** \brief Initalizes the task table.
      *
      */
-    void initTable();
+    void initTables();
 
     /** \brief Initializes the tray icon and its menu.
      *
@@ -97,7 +97,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
 
     /** \brief Helper method to update the session progress value.
      */
-    void onGlobalProgressUpdated();
+    void onUnitEnded();
+
+    /** \brief Helper method to update the session progress value.
+     */
+    void onUnitStarted();
 
     /** \brief Shows the main dialog when activated by the tray icon.
      * \param[in] reason Activation reason.
