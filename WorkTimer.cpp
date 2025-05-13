@@ -56,6 +56,7 @@ WorkTimer::WorkTimer() :
     m_crank.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/crank.wav"));
     m_ring.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/deskbell.wav"));
     m_click.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/click.wav"));
+    m_finish.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/finish.wav"));
 }
 
 //-----------------------------------------------------------------
@@ -91,25 +92,19 @@ void WorkTimer::startTimers()
 //-----------------------------------------------------------------
 QTime WorkTimer::getWorkDuration() const
 {
-    QTime time{0, 0, 0, 0};
-    time = time.addMSecs(m_workUnitTime);
-    return time;
+    return QTime{0, 0, 0, 0}.addMSecs(m_workUnitTime);
 }
 
 //-----------------------------------------------------------------
 QTime WorkTimer::getShortBreakDuration() const
 {
-    QTime time{0, 0, 0, 0};
-    time = time.addMSecs(m_shortBreakTime);
-    return time;
+    return QTime{0, 0, 0, 0}.addMSecs(m_shortBreakTime);;
 }
 
 //-----------------------------------------------------------------
 QTime WorkTimer::getLongBreakDuration() const
 {
-    QTime time{0, 0, 0, 0};
-    time = time.addMSecs(m_longBreakTime);
-    return time;
+    return QTime{0, 0, 0, 0}.addMSecs(m_longBreakTime);
 }
 
 //-----------------------------------------------------------------
@@ -120,7 +115,7 @@ void WorkTimer::stopTimers()
     m_progressTimer.stop();
     m_remainMS = 0;
 
-    bool noSounds = (m_status == Status::Stopped || m_status == Status::Paused);
+    const bool noSounds = (m_status == Status::Stopped || m_status == Status::Paused);
     if (m_useSounds && !noSounds) {
         if (m_continuousTicTac) {
             queueSound(Sound::NONE);
@@ -135,12 +130,11 @@ void WorkTimer::startWorkUnit()
 {
     m_timer.setInterval(m_workUnitTime);
 
+    startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()), Qt::QueuedConnection);
     m_status = Status::Work;
 
     emit beginWorkUnit();
-
-    startTimers();
 }
 
 //-----------------------------------------------------------------
@@ -148,12 +142,11 @@ void WorkTimer::startShortBreak()
 {
     m_timer.setInterval(m_shortBreakTime);
 
+    startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endShortBreak()), Qt::QueuedConnection);
     m_status = Status::ShortBreak;
 
     emit beginShortBreak();
-
-    startTimers();
 }
 
 //-----------------------------------------------------------------
@@ -161,12 +154,11 @@ void WorkTimer::startLongBreak()
 {
     m_timer.setInterval(m_longBreakTime);
 
+    startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()), Qt::QueuedConnection);
     m_status = Status::LongBreak;
 
     emit beginLongBreak();
-
-    startTimers();
 }
 
 //-----------------------------------------------------------------
@@ -307,11 +299,12 @@ void WorkTimer::endWorkUnit()
     if (m_numWorkUnits == m_sessionWorkUnits) {
         stop();
         emit sessionEnded();
+        queueSound(Sound::FINISH);
         return;
     }
 
-    stopTimers();
     disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()));
+    stopTimers();
 
     emit workUnitEnded();
 
@@ -327,8 +320,8 @@ void WorkTimer::endShortBreak()
 {
     ++m_numShortBreaks;
 
-    stopTimers();
     disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endShortBreak()));
+    stopTimers();
 
     emit shortBreakEnded();
     startWorkUnit();
@@ -339,8 +332,8 @@ void WorkTimer::endLongBreak()
 {
     ++m_numLongBreaks;
 
-    stopTimers();
     disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()));
+    stopTimers();
 
     emit longBreakEnded();
     startWorkUnit();

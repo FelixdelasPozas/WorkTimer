@@ -28,6 +28,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QWidget>
+#include <QSvgRenderer>
 
 // C++
 #include <iostream>
@@ -154,4 +155,27 @@ void Utils::scaleDialog(QDialog* window)
         window->adjustSize();
         window->setFixedSize(window->size() * scale);
     }
+}
+
+//-----------------------------------------------------------------
+QPixmap Utils::svgPixmap(const QString& name, const QColor color)
+{
+    // open svg resource load contents to qbytearray
+    QFile file(name);
+    file.open(QIODevice::ReadOnly);
+    QByteArray baData = file.readAll();
+    baData.replace("#000000", 7, color.name().toStdString().c_str(), 7);
+
+    // create svg renderer with edited contents
+    QSvgRenderer svgRenderer(baData);
+    // create pixmap target (could be a QImage)
+    QPixmap pix(svgRenderer.defaultSize());
+    pix.fill(Qt::transparent);
+    // create painter to act over pixmap
+    QPainter pixPainter(&pix);
+    // use renderer to render over painter which paints on pixmap
+    svgRenderer.setAspectRatioMode(Qt::AspectRatioMode::KeepAspectRatio);    
+    svgRenderer.render(&pixPainter);
+
+    return pix;
 }

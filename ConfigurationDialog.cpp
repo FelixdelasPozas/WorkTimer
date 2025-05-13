@@ -42,8 +42,9 @@ ConfigurationDialog::ConfigurationDialog(const Utils::Configuration& config, QWi
     m_widget.setVisible(widgetCheckBox->isEnabled());
     m_widget.setPosition(config.m_widgetPosition);
     m_widget.setColor(config.m_workColor);
+    m_widget.setIcon(":/WorkTimer/work.svg");
     m_widget.setProgress(45);
-    m_widget.setName("Task name");
+    m_widget.setTitle("Task name");
     m_widget.setOpacity(opacitySpinBox->value());
     auto it = std::find(m_widgetPositions.cbegin(), m_widgetPositions.cend(), config.m_widgetPosition);
     positionComboBox->setCurrentIndex(it != m_widgetPositions.cend() ? std::distance(m_widgetPositions.cbegin(), it) : 0);

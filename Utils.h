@@ -107,6 +107,13 @@ namespace Utils
      *
      */
     void scaleDialog(QDialog* dialog);
+
+    /** \brief Returns the given svg as a pixmap in the given color. 
+     * \param[in] name SVG name in resources.
+     * \param[in] color Color to use. 
+     *
+     */
+    QPixmap svgPixmap(const QString &name, const QColor color);
 } // namespace Utils
 
 #endif // UTILS_H_

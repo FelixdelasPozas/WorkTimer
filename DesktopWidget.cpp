@@ -19,6 +19,7 @@
 
 // project
 #include <DesktopWidget.h>
+#include <Utils.h>
 
 // Qt
 #include <QPainter>
@@ -27,6 +28,7 @@
 #include <QScreen>
 #include <QApplication>
 #include <QPixmap>
+#include <QSvgRenderer>
 
 const int DesktopWidget::WIDGET_SIZE = 100;
 
@@ -165,7 +167,7 @@ void DesktopWidget::setColor(const QColor& color)
 }
 
 //-----------------------------------------------------------------
-void DesktopWidget::setName(const QString& name)
+void DesktopWidget::setTitle(const QString& name)
 {
     if (m_name != name) {
         m_name = name;
@@ -184,9 +186,11 @@ QIcon DesktopWidget::asIcon(unsigned int minutes)
 
     QPainter painter;
     painter.begin(&image);
-    paintHelper(painter, image.rect());
+    paintWidget(painter, image.rect());
 
-    painter.setFont(QFont("Arial", 70));
+    auto font = QFont("Arial", 65);
+    font.setBold(true);
+    painter.setFont(font);
     painter.setPen(m_color.darker());
     painter.drawText(image.rect(), Qt::AlignCenter, QString::number(minutes));
     painter.end();
@@ -204,9 +208,16 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
 
     QPainter painter;
     painter.begin(this);
-    paintHelper(painter, rect());
+    paintWidget(painter, rect());
 
     auto smallRect = QRect{windowRect.x() + 5, windowRect.y() + 5, windowRect.width() - 10, windowRect.height() - 10};
+    if(!m_icon.isEmpty())
+    {
+        auto svgRect = QRect{windowRect.x() + 15, windowRect.y() + 15, windowRect.width() - 30, windowRect.height() - 30};
+        painter.setRenderHints(QPainter::RenderHint::SmoothPixmapTransform|QPainter::RenderHint::Antialiasing, true);
+        auto pixmap = Utils::svgPixmap(m_icon, m_color.darker());
+        painter.drawPixmap(svgRect, pixmap, pixmap.rect());
+    }
 
     QString displayText;
     auto parts = m_name.split(" ");
@@ -217,7 +228,9 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
     const auto color = (m_contrastColor == Qt::black ? Qt::white : Qt::black);
     smallRect = QRect{windowRect.x() + 2, windowRect.y() + 2, windowRect.width() - 2, windowRect.height() - 2};
 
-    painter.setFont(QFont("Arial", 10));
+    auto font = QFont("Arial", 10);
+    font.setBold(true);
+    painter.setFont(font);
     painter.setPen(color);
     painter.drawText(smallRect, Qt::AlignCenter, displayText);
 
@@ -227,7 +240,7 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
 }
 
 //-----------------------------------------------------------------
-void DesktopWidget::paintHelper(QPainter &painter, const QRect &windowRect)
+void DesktopWidget::paintWidget(QPainter &painter, const QRect &windowRect)
 {
     QBrush brush(m_contrastColor, Qt::SolidPattern);
 

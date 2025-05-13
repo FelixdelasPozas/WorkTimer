@@ -103,6 +103,10 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void onUnitStarted();
 
+    /** \brief Displays a message box indicating the end of the session.
+     */
+    void onSessionEnded();
+
     /** \brief Shows the main dialog when activated by the tray icon.
      * \param[in] reason Activation reason.
      */

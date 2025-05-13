@@ -267,13 +267,15 @@ class WorkTimer
       TICTAC,
       RING,
       CLICK,
+      FINISH,
       NONE
     };
 
-    static const int LENGTH_CRANK = 530;  /** length in milliseconds of the crack sound. */
-    static const int LENGTH_TICTAC = 450; /** length in milliseconds of the tic-tac sound. */
-    static const int LENGTH_RING = 1300;  /** length in milliseconds of the ring sound. */
-    static const int LENGTH_CLICK = 440;  /** length in milliseconds of the ring sound. */
+    static const int LENGTH_CRANK = 530;   /** length in milliseconds of the crack sound. */
+    static const int LENGTH_TICTAC = 450;  /** length in milliseconds of the tic-tac sound. */
+    static const int LENGTH_RING = 1300;   /** length in milliseconds of the ring sound. */
+    static const int LENGTH_CLICK = 440;   /** length in milliseconds of the click sound. */
+    static const int LENGTH_FINISH = 3800; /** length in milliseconds of the finish sound. */
 
     /** \brief Queues the sound to play.
      * \param[in] sound.
@@ -333,6 +335,7 @@ class WorkTimer
     QSoundEffect m_tictac; /** Tic-tac sound    */
     QSoundEffect m_ring;   /** Alarm ring sound */
     QSoundEffect m_click;  /** Click sound      */
+    QSoundEffect m_finish; /** Click sound      */
 
     QList<Sound> m_playList; /** list of sounds to play. */
 };

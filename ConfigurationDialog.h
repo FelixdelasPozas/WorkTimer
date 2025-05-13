@@ -29,7 +29,7 @@
 
 namespace Utils
 {
-    struct Configuration;
+    class Configuration;
 }
 
 /** \class ConfigurationDialog

@@ -44,10 +44,10 @@ AboutDialog::AboutDialog(QWidget* parent, Qt::WindowFlags flags) :
     m_version->setText(WorkTimer_Version);
     m_qtVersion->setText(tr("version %1").arg(qVersion()));
     m_copy->setText(
-        tr("Copyright (c)%1 Félix de las Pozas Álvarez").arg(QDateTime::currentDateTime().date().year()));
+        tr("Copyright (c) %1 Félix de las Pozas Álvarez").arg(QDateTime::currentDateTime().date().year()));
 
     QObject::connect(m_kofiLabel, &Utils::ClickableHoverLabel::clicked,
-                     [this]() { QDesktopServices::openUrl(QUrl{"https://ko-fi.com/felixdelaspozas"}); });
+                     []() { QDesktopServices::openUrl(QUrl{"https://ko-fi.com/felixdelaspozas"}); });
 }
 
 //-----------------------------------------------------------------

@@ -75,7 +75,14 @@ class DesktopWidget : public QWidget
     /** \brief Sets the name of the widget.
      *
      */
-    void setName(const QString& name);
+    void setTitle(const QString& name);
+
+    /** \brief Sets the icon to draw in the desktop widget.
+     * \param[in]
+     *
+     */
+    void setIcon(const QString &icon)
+    { m_icon = icon; }
 
     /** \brief Returns the progress as an icon.
      * \param[in] minutes Remaining minutes in the unit.
@@ -93,11 +100,18 @@ class DesktopWidget : public QWidget
 
   private:
     virtual void paintEvent(QPaintEvent* e) override final;
-    void paintHelper(QPainter &, const QRect &windowRect);
+
+    /** \brief Helper to draw the circle and background of the widget. 
+     * \param[in] painter Current QPainter reference. 
+     * \param[in] windowRect Size of canvas.
+     *
+     */
+    void paintWidget(QPainter &painter, const QRect &windowRect);
 
     double m_progress;      /** progress of the widget in [0.0-100.0]. */
     QColor m_color;         /** color of the widget. */
     QColor m_contrastColor; /** contrast color in relation to m_color, always black or white. */
+    QString m_icon;         /** Icon to paint in the desktop widget. */
     QString m_name;         /** alarm name */
 
     bool m_buttonDown; /** true if the left mouse button is down and false otherwise. */
