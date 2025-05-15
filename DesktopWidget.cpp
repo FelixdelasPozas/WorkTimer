@@ -29,6 +29,7 @@
 #include <QApplication>
 #include <QPixmap>
 #include <QSvgRenderer>
+#include <QPainterPath>
 
 const int DesktopWidget::WIDGET_SIZE = 100;
 
@@ -208,34 +209,78 @@ void DesktopWidget::paintEvent(QPaintEvent* e)
 
     QPainter painter;
     painter.begin(this);
+    painter.setRenderHint(QPainter::RenderHint::Antialiasing, true);
+    painter.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform, true);
+    painter.setRenderHint(QPainter::RenderHint::TextAntialiasing, true);
     paintWidget(painter, rect());
 
-    auto smallRect = QRect{windowRect.x() + 5, windowRect.y() + 5, windowRect.width() - 10, windowRect.height() - 10};
     if(!m_icon.isEmpty())
     {
         auto svgRect = QRect{windowRect.x() + 15, windowRect.y() + 15, windowRect.width() - 30, windowRect.height() - 30};
-        painter.setRenderHints(QPainter::RenderHint::SmoothPixmapTransform|QPainter::RenderHint::Antialiasing, true);
         auto pixmap = Utils::svgPixmap(m_icon, m_color.darker());
+        painter.setOpacity(0.5);
         painter.drawPixmap(svgRect, pixmap, pixmap.rect());
     }
 
-    QString displayText;
-    auto parts = m_name.split(" ");
-    for (const auto &part : parts) {
-        displayText.append(part + (part != parts.last() ? "\n" : ""));
-    }
+    painter.setOpacity(1.);
+
+    auto font = QFont("Arial", 15);
+    font.setBold(true);
+    QFontMetrics fm{font};
+    auto height = fm.height();
 
     const auto color = (m_contrastColor == Qt::black ? Qt::white : Qt::black);
-    smallRect = QRect{windowRect.x() + 2, windowRect.y() + 2, windowRect.width() - 2, windowRect.height() - 2};
-
-    auto font = QFont("Arial", 10);
-    font.setBold(true);
-    painter.setFont(font);
     painter.setPen(color);
-    painter.drawText(smallRect, Qt::AlignCenter, displayText);
+    painter.setBrush(m_contrastColor);
 
-    painter.setPen(m_contrastColor);
-    painter.drawText(windowRect, Qt::AlignCenter, displayText);
+    QString displayText;
+    auto parts = m_name.split(" ");
+    int totalHeight = parts.size() * height;
+    while(totalHeight > windowRect.height())
+    {
+        font.setPointSize(font.pointSize()-1);
+        fm = QFontMetrics{font};
+        height = fm.height();
+        totalHeight = parts.size() * height;
+    }
+
+    int maxWidth = windowRect.width() + 1;
+    std::function<int(QFontMetrics &)> computeMaxWidth = [&maxWidth, &parts](QFontMetrics &f) {
+        int maxValue = 0;
+        for (const auto& part : parts) {
+            maxValue = std::max(maxValue, f.boundingRect(part).width());
+        }
+        return maxValue;
+    };
+
+    bool started = false;
+    while(maxWidth > windowRect.width())
+    {
+        if(started)
+        {
+            font.setPointSize(font.pointSize() - 1);
+            fm = QFontMetrics{font};
+        }
+        maxWidth = computeMaxWidth(fm);
+        height = fm.height();
+        totalHeight = parts.size() * height;
+        started = true;
+    }
+
+    painter.setFont(font);
+    auto pen = painter.pen();
+    pen.setWidth(1);
+    painter.setPen(pen);
+    const float initialY = ((windowRect.height() - totalHeight) - (height/2)) / 2;
+    for (int i = 0; i < parts.size(); ++i) {
+        const auto part = parts.at(i);
+        const auto width = fm.boundingRect(part).width();
+        const float xPos = (windowRect.width() - width) / 2;
+
+        QPainterPath ppath;
+        ppath.addText({xPos, initialY + ((1+i) * height)}, font, part);
+        painter.drawPath(ppath);
+    }
     painter.end();
 }
 
