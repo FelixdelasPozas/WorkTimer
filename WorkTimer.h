@@ -313,6 +313,12 @@ class WorkTimer
      */
 	  void stopTimers();
 
+    /** \brief Helper method to check the end of the session. Returns true if
+     *         the session has ended.
+     *
+     */
+    bool checkEndOfSession();
+
     unsigned long m_workUnitTime;        /** Duration of a work unit.                                       */
     unsigned long m_shortBreakTime;      /** Duration of a short break.                                     */
     unsigned long m_longBreakTime;       /** Duration of a long break.                                      */
@@ -327,8 +333,9 @@ class WorkTimer
     Status        m_status;              /** Actual status of the timer.                                    */
     bool          m_continuousTicTac;    /** Continuous tic-tac sound.                                      */
     unsigned int  m_sessionWorkUnits;    /** Number of work units in a session.                             */
-    bool          m_useSounds;           /** Use sounds.                                                    */
-    unsigned int  m_remainMS;         /** Elapsed seconds since the last time m_timer started.           */
+    bool m_useSounds;                    /** Use sounds.                                                    */
+    unsigned int m_remainMS;             /** Elapsed seconds since the last time m_timer started.           */
+    unsigned int m_newTaskTime;          /** Time elapsed in the last task.                                 */
     QMap<int, QString> m_completedTasks; /** Task names of completed work units.                            */
 
     QSoundEffect m_crank;  /** Crank sound      */

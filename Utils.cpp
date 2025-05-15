@@ -106,7 +106,17 @@ void Utils::Configuration::load()
 }
 
 //-----------------------------------------------------------------
-void Utils::Configuration::save()
+int Utils::Configuration::minutesInSession() const
+{
+    int minutes = m_unitsPerSession * m_workUnitTime;
+    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime) + (((m_unitsPerSession % 4)-1) * m_shortBreakTime);
+    minutes += (m_unitsPerSession / 4) * m_longBreakTime;
+
+    return minutes;
+}
+
+//-----------------------------------------------------------------
+void Utils::Configuration::save() const
 {
     QSettings settings = applicationSettings();
     settings.setValue(WORKUNIT_TIME, m_workUnitTime);

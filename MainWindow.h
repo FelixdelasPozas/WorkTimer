@@ -29,7 +29,37 @@
 // Qt
 #include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QDialog>
 
+/** \class FinishDialog
+ * \brief Implements the dialog to show when finising the session. Needed
+ *        because QMessageBox triggers a sound than inteferes with the finishing
+ *        sound.
+ *
+ */
+class FinishDialog : public QDialog
+{
+    Q_OBJECT
+  public:
+    /** \brief FinishDialog class constructor. 
+     * \param[in] parent Raw pointer of the widget parent of this one.
+     * \param[in] f Window flags. 
+     *
+     */
+    FinishDialog(QWidget* parent, Qt::WindowFlags f = Qt::WindowFlags());
+
+    /** \brief FinishDialog class virtual destructor. 
+     */
+    virtual ~FinishDialog() {};
+
+  protected:
+    void showEvent(QShowEvent*) override;
+};
+
+/** \class MainWindow
+ * \brief Implements the main dialog and all the UI logic.
+ *
+ */
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
     Q_OBJECT
@@ -68,6 +98,22 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      *
      */
     void initIconAndMenu();
+
+    /** \brief Helper method to update the time of a row in a table. 
+     * \param[in] timeToAdd time to add to the item.
+     * \param[in] row Row of the item.
+     * \param[in] table Table that contains the item.
+     *
+     */
+    void updateItemTime(const QTime &timeToAdd, const int row, QTableWidget *table);
+
+    /** \brief Helper method to update the completed units of a row in a table. 
+     * \param[in] unitToAdd number of units to add.
+     * \param[in] row Row of the item.
+     * \param[in] table Table that contains the item.
+     *
+     */
+    void updateItemUnits(const int unitToAdd, const int row, QTableWidget *table);
 
   private slots:
     /** \brief Shows the About dialog.

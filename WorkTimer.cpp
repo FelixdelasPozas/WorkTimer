@@ -44,7 +44,8 @@ WorkTimer::WorkTimer() :
     m_continuousTicTac{false},
     m_sessionWorkUnits{12},
     m_useSounds{true},
-    m_remainMS{0}
+    m_remainMS{0},
+    m_newTaskTime{0}
 {
     m_timer.setSingleShot(true);
     m_progressTimer.setSingleShot(false);
@@ -83,10 +84,8 @@ void WorkTimer::startTimers()
     m_progress = 0;
     m_remainMS = 0;
 
-    if (m_useSounds) {
-        queueSound(Sound::CRANK);
-        queueSound(Sound::TICTAC);
-    }
+    queueSound(Sound::CRANK);
+    queueSound(Sound::TICTAC);
 }
 
 //-----------------------------------------------------------------
@@ -116,13 +115,26 @@ void WorkTimer::stopTimers()
     m_remainMS = 0;
 
     const bool noSounds = (m_status == Status::Stopped || m_status == Status::Paused);
-    if (m_useSounds && !noSounds) {
+    if (!noSounds) {
         if (m_continuousTicTac) {
             queueSound(Sound::NONE);
         }
 
         queueSound(Sound::RING);
     }
+}
+
+//-----------------------------------------------------------------
+bool WorkTimer::checkEndOfSession()
+{
+    if (m_numWorkUnits == m_sessionWorkUnits) {
+        m_status = Status::Stopped;
+        queueSound(Sound::FINISH);
+        emit sessionEnded();
+        return true;
+    }
+
+    return false;
 }
 
 //-----------------------------------------------------------------
@@ -133,6 +145,7 @@ void WorkTimer::startWorkUnit()
     startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()), Qt::QueuedConnection);
     m_status = Status::Work;
+    m_newTaskTime = 0;
 
     emit beginWorkUnit();
 }
@@ -140,11 +153,16 @@ void WorkTimer::startWorkUnit()
 //-----------------------------------------------------------------
 void WorkTimer::startShortBreak()
 {
+    if (checkEndOfSession()) {
+        return;
+    }
+
     m_timer.setInterval(m_shortBreakTime);
 
     startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endShortBreak()), Qt::QueuedConnection);
     m_status = Status::ShortBreak;
+    m_newTaskTime = 0;
 
     emit beginShortBreak();
 }
@@ -152,11 +170,16 @@ void WorkTimer::startShortBreak()
 //-----------------------------------------------------------------
 void WorkTimer::startLongBreak()
 {
+    if (checkEndOfSession()) {
+        return;
+    }
+
     m_timer.setInterval(m_longBreakTime);
 
     startTimers();
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()), Qt::QueuedConnection);
     m_status = Status::LongBreak;
+    m_newTaskTime = 0;
 
     emit beginLongBreak();
 }
@@ -213,13 +236,12 @@ void WorkTimer::pause()
 //-----------------------------------------------------------------
 unsigned int WorkTimer::elapsed() const
 {
-    auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
-
+    const auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
     if (Status::Paused != m_status) {
-        return QTime{0,0,0}.msecsTo(unitTime) - m_timer.remainingTime();
+        return QTime{0,0,0}.msecsTo(unitTime) - m_timer.remainingTime() - m_newTaskTime;
     }
 
-    return QTime{0,0,0}.msecsTo(unitTime) - m_remainMS;
+    return QTime{0,0,0}.msecsTo(unitTime) - m_remainMS - m_newTaskTime;
 }
 
 //-----------------------------------------------------------------
@@ -239,12 +261,8 @@ void WorkTimer::stop()
         case Status::LongBreak:
             m_timer.disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endLongBreak()));
             break;
-        case Status::Paused:
-            pause();
-            stop();
-            break;
         default:
-            Q_ASSERT(false);
+        case Status::Paused:
             break;
     }
 
@@ -274,6 +292,7 @@ void WorkTimer::setLongBreakDuration(QTime duration)
 void WorkTimer::setTaskTitle(QString taskTitle)
 {
     m_task = taskTitle;
+    m_newTaskTime += elapsed();
 }
 
 //-----------------------------------------------------------------
@@ -295,13 +314,6 @@ void WorkTimer::endWorkUnit()
     m_completedTasks[m_numWorkUnits] = m_task;
 
     ++m_numWorkUnits;
-
-    if (m_numWorkUnits == m_sessionWorkUnits) {
-        stop();
-        emit sessionEnded();
-        queueSound(Sound::FINISH);
-        return;
-    }
 
     disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(endWorkUnit()));
     stopTimers();
@@ -450,6 +462,10 @@ QString WorkTimer::statusMessage()
 //-----------------------------------------------------------------
 void WorkTimer::queueSound(Sound sound)
 {
+    if (!m_useSounds) {
+        return;
+    }
+    
     m_playList << sound;
 
     if (m_playList.size() == 1) {
@@ -478,6 +494,10 @@ void WorkTimer::playNextSound()
         case Sound::CLICK:
             startTimer(LENGTH_CLICK);
             m_click.play();
+            break;
+        case Sound::FINISH:
+            startTimer(LENGTH_FINISH);
+            m_finish.play();
             break;
         case Sound::NONE:
             if (m_tictac.loopCount() == QSoundEffect::Infinite) {

@@ -81,7 +81,12 @@ namespace Utils
 
         /** \brief Saves the configuration of the application to an ini file or the registry.
          */
-        void save();
+        void save() const;
+
+        /** \brief Returns the total minutes in a session for this configuration.
+         *
+         */
+        int minutesInSession() const;
 
         int m_workUnitTime = 25;                      /** minutes of a work unit. */
         int m_shortBreakTime = 5;                     /** minutes of a short break. */

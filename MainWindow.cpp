@@ -30,6 +30,11 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QMenu>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDialogButtonBox>
+
+const QString TIME_FORMAT = "hh:mm:ss";
 
 //----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
@@ -97,10 +102,7 @@ void MainWindow::applyConfiguration()
     m_timer.setContinuousTicTac(m_configuration.m_continuousTicTac);
     m_timer.setSessionWorkUnits(m_configuration.m_unitsPerSession);
 
-    const int workMinutes = m_configuration.m_unitsPerSession * m_configuration.m_workUnitTime;
-    const int breaksMinutes = (m_configuration.m_unitsPerSession / 4) *
-                              (3 * m_configuration.m_shortBreakTime + m_configuration.m_longBreakTime);
-    m_totalMinutes = workMinutes + breaksMinutes;
+    m_totalMinutes = m_configuration.minutesInSession();
 }
 
 //----------------------------------------------------------------------------
@@ -165,6 +167,28 @@ void MainWindow::initIconAndMenu()
     m_trayIcon->setContextMenu(menu);
     m_trayIcon->setToolTip(m_timer.statusMessage());
     m_trayIcon->hide();
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::updateItemTime(const QTime& timeToAdd, const int row, QTableWidget* table)
+{
+    if(!table || table->rowCount() < row)
+        return;
+
+    auto itemTime = QTime::fromString(table->item(row, 1)->text());
+    itemTime = itemTime.addMSecs(QTime{0,0,0}.msecsTo(timeToAdd));
+    table->item(row,1)->setText(itemTime.toString(TIME_FORMAT));
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::updateItemUnits(const int unitToAdd, const int row, QTableWidget* table)
+{
+    if(!table || table->rowCount() < row)
+        return;
+
+    auto itemUnits = atoi(table->item(row, 2)->text().toStdString().c_str());
+    itemUnits += unitToAdd;
+    table->item(row,2)->setText(QString("%1").arg(itemUnits));
 }
 
 //----------------------------------------------------------------------------
@@ -233,6 +257,7 @@ void MainWindow::openConfiguration()
 
     dialog.getConfiguration(m_configuration);
     applyConfiguration();
+    m_progressBar->setValue(0);
 }
 
 //----------------------------------------------------------------------------
@@ -249,6 +274,7 @@ void MainWindow::onPlayClicked()
     switch (m_timer.status()) {
         case WorkTimer::Status::Stopped:
             m_timer.start();
+            m_progressBar->setValue(0);
             actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
             m_timerEntry->setIcon(QIcon(":/WorkTimer/pause.svg"));
             m_timerEntry->setText("Pause unit");
@@ -309,21 +335,31 @@ void MainWindow::onTaskNameClicked()
         return;
     }
 
-    m_widget.setTitle(taskName);
-    m_timer.setTaskTitle(taskName);
+    const auto elapsedMS = m_timer.elapsed();
 
+    bool insertedNew = false;
     const auto rows = m_taskTable->rowCount();
     if (rows == 0 || m_taskTable->item(rows - 1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0) {
         m_taskTable->insertRow(rows);
         auto item = new QTableWidgetItem(taskName);
         item->setTextAlignment(Qt::AlignCenter);
         m_taskTable->setItem(rows, 0, item);
-        item = new QTableWidgetItem(QTime{0, 0, 0}.toString("hh:mm:ss"));
+        item = new QTableWidgetItem(QTime{0, 0, 0}.toString(TIME_FORMAT));
         item->setTextAlignment(Qt::AlignCenter);
         m_taskTable->setItem(rows, 1, item);
         item = new QTableWidgetItem("0");
         item->setTextAlignment(Qt::AlignCenter);
         m_taskTable->setItem(rows, 2, item);
+        m_timer.setTaskTitle(taskName);
+        m_widget.setTitle(taskName);
+        insertedNew = true;
+    }
+
+    if(insertedNew && rows != 0)
+    {
+        const auto elapsedTime = QTime{0,0,0}.addMSecs(elapsedMS);
+        updateItemTime(elapsedTime, rows - 1, m_taskTable);
+        qDebug() << "enter" << rows-1 << elapsedTime << elapsedMS;
     }
 }
 
@@ -332,25 +368,26 @@ void MainWindow::onProgressUpdated(unsigned int value)
 {
     m_widget.setProgress(value);
 
-    unsigned int progressMinutes = 0;
+    unsigned int progressSeconds = 0;
     unsigned int invMinutes = 0;
     switch (m_timer.status()) {
         default:
         case WorkTimer::Status::Work:
-            progressMinutes = value / 100.f * m_configuration.m_workUnitTime;
-            invMinutes = m_configuration.m_workUnitTime - progressMinutes;
+            progressSeconds = value / 100.f * m_configuration.m_workUnitTime * 60;
+            invMinutes = m_configuration.m_workUnitTime - (progressSeconds / 60);
             break;
         case WorkTimer::Status::ShortBreak:
-            progressMinutes = value / 100.f * m_configuration.m_shortBreakTime;
-            invMinutes = m_configuration.m_shortBreakTime - progressMinutes;
+            progressSeconds = value / 100.f * m_configuration.m_shortBreakTime * 60;
+            invMinutes = m_configuration.m_shortBreakTime - (progressSeconds / 60);
             break;
         case WorkTimer::Status::LongBreak:
-            progressMinutes = value / 100.f * m_configuration.m_longBreakTime;
-            invMinutes = m_configuration.m_longBreakTime - progressMinutes;
+            progressSeconds = value / 100.f * m_configuration.m_longBreakTime * 60;
+            invMinutes = m_configuration.m_longBreakTime - (progressSeconds/60);
             break;
     }
 
-    m_progressBar->setValue(((m_globalProgress + progressMinutes) * 100) / m_totalMinutes);
+    int globalProgress = std::nearbyint((static_cast<float>((m_globalProgress * 60) + progressSeconds) * 100) / (m_totalMinutes * 60));
+    m_progressBar->setValue(globalProgress);
     m_trayIcon->setIcon(m_widget.asIcon(invMinutes));
     m_trayIcon->setToolTip(m_timer.statusMessage() + "\nTask: " + m_timer.getTaskTitle());
 }
@@ -368,21 +405,20 @@ void MainWindow::onUnitEnded()
             seconds = m_configuration.m_workUnitTime * 60;
             m_globalProgress += m_configuration.m_workUnitTime;
 
-            auto item = m_taskTable->item(m_taskTable->rowCount()-1, 2);
-            auto numCompleted = atoi(item->text().toStdString().c_str());
-            item->setText(QString("%1").arg(++numCompleted));
-            item = m_taskTable->item(m_taskTable->rowCount()-1, 1);
-            auto completedTime = QTime::fromString(item->text());
-            item->setText(completedTime.addSecs(seconds).toString("hh:mm:ss"));
+            updateItemTime(QTime{0,0,0}.addSecs(seconds), m_taskTable->rowCount()-1, m_taskTable);
+            updateItemUnits(1, m_taskTable->rowCount()-1, m_taskTable);
+            m_widget.setTitle(m_timer.getTaskTitle());
         }
             break;
         case WorkTimer::Status::ShortBreak:
             seconds = m_configuration.m_shortBreakTime * 60;
             m_globalProgress += m_configuration.m_shortBreakTime;
+            m_widget.setTitle("Short break");
             break;
         case WorkTimer::Status::LongBreak:
             seconds = m_configuration.m_longBreakTime * 60;
             m_globalProgress += m_configuration.m_longBreakTime;
+            m_widget.setTitle("Long break");
             break;
         case WorkTimer::Status::Stopped:
         case WorkTimer::Status::Paused:
@@ -391,12 +427,8 @@ void MainWindow::onUnitEnded()
 
     m_progressBar->setValue((m_globalProgress * 100) / m_totalMinutes);
 
-    auto item = m_unitTable->item(row, 2);
-    auto numCompleted = atoi(item->text().toStdString().c_str());
-    item->setText(QString("%1").arg(++numCompleted));
-    item = m_unitTable->item(row, 1);
-    auto completedTime = QTime::fromString(item->text());
-    item->setText(completedTime.addSecs(seconds).toString("hh:mm:ss"));
+    updateItemTime(QTime{0,0,0}.addSecs(seconds), row, m_unitTable);
+    updateItemUnits(1, row, m_unitTable);
 }
 
 //----------------------------------------------------------------------------
@@ -435,11 +467,42 @@ void MainWindow::onUnitStarted()
 void MainWindow::onSessionEnded()
 {
     onStopClicked();
-    QMessageBox msgBox;
-    msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
-    msgBox.setIcon(QMessageBox::Icon::Information);
-    msgBox.setText("The session has ended!");
-    msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
-    msgBox.setStandardButtons(QMessageBox::StandardButton::Ok);
-    msgBox.exec();
+
+    if(m_trayIcon->isVisible())
+    {
+        showNormal();
+        m_trayIcon->hide();
+    }
+
+    FinishDialog d(this);
+    d.exec();
+}
+
+//----------------------------------------------------------------------------
+FinishDialog::FinishDialog(QWidget* parent, Qt::WindowFlags f)
+: QDialog{parent,f}
+{
+    setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+
+    setLayout(new QVBoxLayout());
+    layout()->addWidget(new QLabel("The session has ended!", this));
+    auto buttonBox = new QDialogButtonBox(this);
+    buttonBox->setObjectName("buttonBox");
+    buttonBox->setMaximumSize(QSize(575, 23));
+    buttonBox->setOrientation(Qt::Orientation::Horizontal);
+    buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Ok);
+
+    layout()->addWidget(buttonBox);
+
+    QObject::connect(buttonBox, &QDialogButtonBox::accepted, this, qOverload<>(&QDialog::accept));
+    QObject::connect(buttonBox, &QDialogButtonBox::rejected, this, qOverload<>(&QDialog::reject));
+
+    QMetaObject::connectSlotsByName(this);
+}
+
+//----------------------------------------------------------------------------
+void FinishDialog::showEvent(QShowEvent *e)
+{
+    QDialog::showEvent(e);
+    Utils::scaleDialog(this);
 }
