@@ -25,6 +25,7 @@
 #include <Utils.h>
 #include <WorkTimer.h>
 #include <DesktopWidget.h>
+#include <QTaskBarButton/QTaskBarButton.h>
 
 // Qt
 #include <QMainWindow>
@@ -173,6 +174,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     QAction *m_stopEntry;                 /** tray menu entry for stop the timer. */
     QAction *m_taskEntry;                 /** tray menu entry for changing the task name. */
     bool m_needsExit = false;             /** true to exit application at close(), false otherwise. */
+    QTaskBarButton m_taskBarButton;       /** taskbar progress widget. */
 };
 
 #endif

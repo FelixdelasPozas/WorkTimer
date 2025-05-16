@@ -39,9 +39,15 @@ const QString TIME_FORMAT = "hh:mm:ss";
 //----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
     QMainWindow{p, f},
-    m_widget{false, this}
+    m_widget{false, this},
+    m_taskBarButton{this}
 {
     setupUi(this);
+
+    m_taskBarButton.setMaximum(100);
+    m_taskBarButton.setMinimum(100);
+    m_taskBarButton.setState(QTaskBarButton::State::Invisible);
+    m_taskBarButton.setValue(0);
 
     connectSignals();
 
@@ -317,6 +323,8 @@ void MainWindow::onStopClicked()
     m_trayIcon->setToolTip(m_timer.statusMessage());
     m_trayIcon->setIcon(QIcon(":/WorkTimer/clock.svg"));
     actionConfiguration->setEnabled(true);
+    m_taskBarButton.setState(QTaskBarButton::State::Invisible);
+    m_taskBarButton.setValue(0);
 }
 
 //----------------------------------------------------------------------------
@@ -368,6 +376,14 @@ void MainWindow::onTaskNameClicked()
 void MainWindow::onProgressUpdated(unsigned int value)
 {
     m_widget.setProgress(value);
+
+    const QTaskBarButton::State tbState = m_taskBarButton.state();
+    const QTaskBarButton::State state = (value == 0) ? QTaskBarButton::State::Invisible : QTaskBarButton::State::Normal;
+
+    if (tbState != state) {
+        m_taskBarButton.setState(state);
+    }
+    m_taskBarButton.setValue(value);
 
     unsigned int progressSeconds = 0;
     unsigned int invMinutes = 0;

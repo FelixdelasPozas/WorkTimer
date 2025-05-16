@@ -28,6 +28,11 @@
 #include <QDateTime>
 #include <QtGlobal>
 
+// SQLite
+extern "C" {
+#include <sqlite3/sqlite3.h>
+}
+
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget* parent, Qt::WindowFlags flags) :
     QDialog(parent, flags)
@@ -43,6 +48,7 @@ AboutDialog::AboutDialog(QWidget* parent, Qt::WindowFlags flags) :
     m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
     m_version->setText(WorkTimer_Version);
     m_qtVersion->setText(tr("version %1").arg(qVersion()));
+    m_sqliteVersion->setText(QString("version %1").arg(QString::fromLatin1(sqlite3_version)));    
     m_copy->setText(
         tr("Copyright (c) %1 Félix de las Pozas Álvarez").arg(QDateTime::currentDateTime().date().year()));
 
