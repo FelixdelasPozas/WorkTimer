@@ -100,6 +100,7 @@ namespace Utils
         QPoint m_widgetPosition = QPoint{0, 0};       /** position of the desktop widget. */
         bool m_useSound = true;                       /** true to use sounds and false otherwise. */
         bool m_continuousTicTac = false;              /** true to use the continuous tic-tac sound during work units. */
+        bool m_iconMessages = true;                   /** true to show tray icon messages and false otherwise.  */
 
       private:
         /** \brief Helper method that returns the QSettings object to use.

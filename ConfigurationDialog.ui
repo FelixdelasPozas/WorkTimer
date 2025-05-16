@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>371</height>
+    <height>431</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>440</width>
-    <height>371</height>
+    <height>431</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>440</width>
-    <height>378</height>
+    <height>431</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,6 +30,116 @@
     <normaloff>:/WorkTimer/configuration.svg</normaloff>:/WorkTimer/configuration.svg</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>Options of the desktop widget</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0px 5px;
+}</string>
+     </property>
+     <property name="title">
+      <string>Desktop Widget</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="widgetCheckBox">
+        <property name="toolTip">
+         <string>Enable or disable the use the desktop widget</string>
+        </property>
+        <property name="text">
+         <string>Use desktop widget</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="positionLabel">
+          <property name="toolTip">
+           <string>Position of the desktop widget</string>
+          </property>
+          <property name="text">
+           <string>Position</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="opacityLabel">
+          <property name="toolTip">
+           <string>Opacity of the desktop widget</string>
+          </property>
+          <property name="text">
+           <string>Opacity</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="positionComboBox">
+          <property name="toolTip">
+           <string>Position of the desktop widget</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QSlider" name="opacitySlider">
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>75</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="opacitySpinBox">
+            <property name="toolTip">
+             <string>Opacity of the desktop widget</string>
+            </property>
+            <property name="suffix">
+             <string>%</string>
+            </property>
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>75</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="font">
@@ -209,117 +319,7 @@ QGroupBox::title {
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="font">
-      <font>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>Options of the desktop widget</string>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox {
-    border: 1px solid gray;
-    border-radius: 5px;
-    margin-top: 1ex;
-}
-
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top center; /* position at the top center */
-    padding: 0px 5px;
-}</string>
-     </property>
-     <property name="title">
-      <string>Desktop Widget</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QCheckBox" name="widgetCheckBox">
-        <property name="toolTip">
-         <string>Enable or disable the use the desktop widget</string>
-        </property>
-        <property name="text">
-         <string>Use desktop widget</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QLabel" name="positionLabel">
-          <property name="toolTip">
-           <string>Position of the desktop widget</string>
-          </property>
-          <property name="text">
-           <string>Position</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="opacityLabel">
-          <property name="toolTip">
-           <string>Opacity of the desktop widget</string>
-          </property>
-          <property name="text">
-           <string>Opacity</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="positionComboBox">
-          <property name="toolTip">
-           <string>Position of the desktop widget</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QSlider" name="opacitySlider">
-            <property name="minimum">
-             <number>10</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="value">
-             <number>75</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="opacitySpinBox">
-            <property name="toolTip">
-             <string>Opacity of the desktop widget</string>
-            </property>
-            <property name="suffix">
-             <string>%</string>
-            </property>
-            <property name="minimum">
-             <number>10</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="value">
-             <number>75</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
+   <item row="4" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -376,6 +376,43 @@ QGroupBox::title {
         </property>
         <property name="text">
          <string>Use continuous &quot;tic-tac&quot; sound during work units.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0px 5px;
+}</string>
+     </property>
+     <property name="title">
+      <string>Tray icon</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="m_iconMessagesCheckbox">
+        <property name="toolTip">
+         <string>Show a tray message when starting a unit.</string>
+        </property>
+        <property name="text">
+         <string>Show icon messages</string>
         </property>
        </widget>
       </item>

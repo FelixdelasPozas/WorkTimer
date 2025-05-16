@@ -46,6 +46,7 @@ const QString DESKTOP_OPACITY = "Desktop widget opacity";
 const QString DESKTOP_POSITION = "Desktop widget position";
 const QString SOUND_USE = "Use sounds";
 const QString SOUND_TIC_TAC = "Use continuous tic-tac";
+const QString ICON_MESSAGES = "Show tray icon messages";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
@@ -103,14 +104,16 @@ void Utils::Configuration::load()
     m_widgetPosition = settings.value(DESKTOP_POSITION, QPoint{0, 0}).toPoint();
     m_useSound = settings.value(SOUND_USE, true).toBool();
     m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
+    m_iconMessages = settings.value(ICON_MESSAGES, true).toBool();
 }
 
 //-----------------------------------------------------------------
 int Utils::Configuration::minutesInSession() const
 {
     int minutes = m_unitsPerSession * m_workUnitTime;
-    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime) + (((m_unitsPerSession % 4)-1) * m_shortBreakTime);
-    minutes += (m_unitsPerSession / 4) * m_longBreakTime;
+    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime + m_longBreakTime) - (m_unitsPerSession % 4 == 0 ? m_longBreakTime : 0);
+    if((m_unitsPerSession % 4) != 0)
+        minutes += ((m_unitsPerSession % 4)-1) * m_shortBreakTime;
 
     return minutes;
 }
@@ -131,6 +134,7 @@ void Utils::Configuration::save() const
     settings.setValue(DESKTOP_POSITION, m_widgetPosition);
     settings.setValue(SOUND_USE, m_useSound);
     settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
+    settings.setValue(ICON_MESSAGES, m_iconMessages);
 
     settings.sync();
 }

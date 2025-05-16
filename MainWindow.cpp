@@ -137,7 +137,7 @@ void MainWindow::initIconAndMenu()
     auto showAction = new QAction(QIcon(":/WorkTimer/maximize.svg"), tr("Restore..."));
     connect(showAction, SIGNAL(triggered(bool)), this, SLOT(onTrayActivated()));
 
-    m_timerEntry = new QAction(QIcon(":/WorkTimer/play.svg"), tr("Start unit"));
+    m_timerEntry = new QAction(QIcon(":/WorkTimer/play.svg"), tr("Start timer"));
     connect(m_timerEntry, SIGNAL(triggered(bool)), this, SLOT(onPlayClicked()));
 
     m_stopEntry = new QAction(QIcon(":/WorkTimer/stop.svg"), tr("Stop timer"));
@@ -165,6 +165,7 @@ void MainWindow::initIconAndMenu()
     menu->addAction(quitAction);
 
     m_trayIcon->setContextMenu(menu);
+    m_trayIcon->setIcon(QIcon(":/WorkTimer/clock.svg"));
     m_trayIcon->setToolTip(m_timer.statusMessage());
     m_trayIcon->hide();
 }
@@ -277,7 +278,7 @@ void MainWindow::onPlayClicked()
             m_progressBar->setValue(0);
             actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
             m_timerEntry->setIcon(QIcon(":/WorkTimer/pause.svg"));
-            m_timerEntry->setText("Pause unit");
+            m_timerEntry->setText("Pause timer");
             actionStop->setEnabled(true);
             m_stopEntry->setEnabled(true);
             actionConfiguration->setEnabled(false);
@@ -288,13 +289,13 @@ void MainWindow::onPlayClicked()
             m_timer.pause();
             actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
             m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
-            m_timerEntry->setText("Start unit");
+            m_timerEntry->setText("Start timer");
             break;
         case WorkTimer::Status::Paused:
             m_timer.pause();
             actionTimer->setIcon(QIcon(":/WorkTimer/pause.svg"));
             m_timerEntry->setIcon(QIcon(":/WorkTimer/pause.svg"));
-            m_timerEntry->setText("Pause unit");
+            m_timerEntry->setText("Pause timer");
             break;
         default:
             break;
@@ -314,7 +315,7 @@ void MainWindow::onStopClicked()
     m_widget.setVisible(false);
     m_widget.setProgress(0);
     m_trayIcon->setToolTip(m_timer.statusMessage());
-    m_trayIcon->setIcon(m_widget.asIcon(m_configuration.m_workUnitTime));
+    m_trayIcon->setIcon(QIcon(":/WorkTimer/clock.svg"));
     actionConfiguration->setEnabled(true);
 }
 
@@ -407,18 +408,15 @@ void MainWindow::onUnitEnded()
 
             updateItemTime(QTime{0,0,0}.addSecs(seconds), m_taskTable->rowCount()-1, m_taskTable);
             updateItemUnits(1, m_taskTable->rowCount()-1, m_taskTable);
-            m_widget.setTitle(m_timer.getTaskTitle());
         }
             break;
         case WorkTimer::Status::ShortBreak:
             seconds = m_configuration.m_shortBreakTime * 60;
             m_globalProgress += m_configuration.m_shortBreakTime;
-            m_widget.setTitle("Short break");
             break;
         case WorkTimer::Status::LongBreak:
             seconds = m_configuration.m_longBreakTime * 60;
             m_globalProgress += m_configuration.m_longBreakTime;
-            m_widget.setTitle("Long break");
             break;
         case WorkTimer::Status::Stopped:
         case WorkTimer::Status::Paused:
@@ -435,6 +433,7 @@ void MainWindow::onUnitEnded()
 void MainWindow::onUnitStarted()
 {
     unsigned int minutes = 0;
+    QString iconMessage;
     switch(m_timer.status())
     {
         case WorkTimer::Status::Stopped:
@@ -442,16 +441,22 @@ void MainWindow::onUnitStarted()
             minutes = m_configuration.m_workUnitTime;   
             m_widget.setColor(m_configuration.m_workColor);
             m_widget.setIcon(":/WorkTimer/work.svg");
+            m_widget.setTitle(m_timer.getTaskTitle());
+            iconMessage = "Started a work unit";
             break;
         case WorkTimer::Status::ShortBreak:
             minutes = m_configuration.m_shortBreakTime;
             m_widget.setColor(m_configuration.m_shortBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
+            m_widget.setTitle("Short break");
+            iconMessage = "Started a short break";
             break;
         case WorkTimer::Status::LongBreak:
             minutes = m_configuration.m_longBreakTime;
             m_widget.setColor(m_configuration.m_longBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
+            m_widget.setTitle("Long break");
+            iconMessage = "Started a long break";
             break;
         default:
         case WorkTimer::Status::Paused:
@@ -461,6 +466,11 @@ void MainWindow::onUnitStarted()
     m_widget.setProgress(0);
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
     m_trayIcon->setToolTip(m_timer.statusMessage());
+
+    if(m_trayIcon->isVisible() && m_configuration.m_iconMessages)
+    {
+        m_trayIcon->showMessage("WorkTimer", iconMessage, QSystemTrayIcon::MessageIcon::Information);
+    }
 }
 
 //----------------------------------------------------------------------------

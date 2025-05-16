@@ -38,7 +38,7 @@ ProgressWidget::ProgressWidget(QWidget* parent) :
 void ProgressWidget::paintEvent(QPaintEvent*)
 {
     QColor paintColor;
-    int xMin = 0, xMax = 0;
+    float xMin = 0, xMax = 0;
 
     const int minutes = m_config.minutesInSession();
     const float minuteWidth = static_cast<float>(width()) / minutes;

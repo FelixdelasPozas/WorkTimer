@@ -305,7 +305,10 @@ font-weight:bold
      <normaloff>:/WorkTimer/play.svg</normaloff>:/WorkTimer/play.svg</iconset>
    </property>
    <property name="text">
-    <string>Timer</string>
+    <string>Start timer</string>
+   </property>
+   <property name="toolTip">
+    <string>Starts timer</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -334,6 +337,9 @@ font-weight:bold
    <property name="text">
     <string>Configuration...</string>
    </property>
+   <property name="toolTip">
+    <string>Configures the timer</string>
+   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
@@ -358,6 +364,9 @@ font-weight:bold
    <property name="text">
     <string>Minimize to tray</string>
    </property>
+   <property name="toolTip">
+    <string>Minimizes the timer to tray</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
    </property>
@@ -374,7 +383,7 @@ font-weight:bold
      <normaloff>:/WorkTimer/stop.svg</normaloff>:/WorkTimer/stop.svg</iconset>
    </property>
    <property name="text">
-    <string>Stop</string>
+    <string>Stop timer</string>
    </property>
    <property name="toolTip">
     <string>Stops the current unit.</string>

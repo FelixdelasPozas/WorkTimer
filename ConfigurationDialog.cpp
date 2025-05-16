@@ -103,6 +103,7 @@ void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
     config.m_widgetOpacity = opacitySpinBox->value();
     config.m_useSound = soundCheckBox->isChecked();
     config.m_continuousTicTac = ticTacCheckBox->isChecked();
+    config.m_iconMessages = m_iconMessagesCheckbox->isChecked();
 
     const auto posIdx = positionComboBox->currentIndex();
     config.m_widgetPosition = posIdx == 0 ? QPoint{0, 0} : m_widgetPositions.at(posIdx);
@@ -208,4 +209,6 @@ void ConfigurationDialog::setConfiguration(const Utils::Configuration &config)
 
     soundCheckBox->setChecked(config.m_useSound);
     ticTacCheckBox->setChecked(config.m_continuousTicTac);
+
+    m_iconMessagesCheckbox->setChecked(config.m_iconMessages);
 }
