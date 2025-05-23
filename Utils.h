@@ -25,8 +25,11 @@
 #include <QFrame>
 #include <QColor>
 #include <QSettings>
+#include <QTime>
+#include <QDateTime>
 
 class QDialog;
+struct sqlite3;
 
 namespace Utils
 {
@@ -68,6 +71,35 @@ namespace Utils
         virtual void leaveEvent(QEvent* event) override;
     };
 
+    /** \struct TaskTableEntry
+     * \brief Struct to contains the information of an entry into the database.
+     */
+    struct TaskTableEntry
+    {
+        std::string name;                  /** name of the task. */
+        unsigned long long taskTime = 0;   /** starting time of the task unix format. */
+        unsigned long long durationMs = 0; /** duration of the task in milliseconds. */
+
+        /** \brief TaskTableEntry struct constructor. 
+         * \param[in] name Name of the task.
+         * \param[in] tTime Starting time of the task unix format. 
+         * \param[in] duration duration of the task in milliseconds.
+         */
+        TaskTableEntry(const std::string name, const unsigned long long tTime, const unsigned long long duration) :
+            name{name},
+            taskTime{tTime},
+            durationMs{duration} {};
+
+        /** \brief TaskTableEntry struct empty constructor. 
+         */
+        TaskTableEntry() :
+            name{"unknown"},
+            taskTime{0},
+            durationMs{0} {};
+    };
+
+    using TaskTableEntries = std::vector<Utils::TaskTableEntry>;
+
     /** \class Configuration
      * \brief Implements a progress bar that represents the progres in the session.
      *
@@ -101,11 +133,18 @@ namespace Utils
         bool m_useSound = true;                       /** true to use sounds and false otherwise. */
         bool m_continuousTicTac = false;              /** true to use the continuous tic-tac sound during work units. */
         bool m_iconMessages = true;                   /** true to show tray icon messages and false otherwise.  */
+        QString m_dataDir;                            /** directory that contains the database. */
+        sqlite3* m_database = nullptr;                /** sqlite database. */
 
       private:
         /** \brief Helper method that returns the QSettings object to use.
          */
         QSettings applicationSettings() const;
+
+        /** \brief Opens the database file or creates it if it doesn't exists.
+         *
+         */
+        void openDatabase();
     };
 
     /** \brief Helper method to scale the dialog and mininize its size.
@@ -120,6 +159,98 @@ namespace Utils
      *
      */
     QPixmap svgPixmap(const QString &name, const QColor color);
+
+    /** \brief Helper method to insert values into the database. 
+     * \param[in] config Application configuration that contains the database handle. 
+     * \param[in] entry TaskTableEntry struct reference.
+     *
+     */
+    void insertUnitIntoDatabase(Configuration &config, const TaskTableEntry &entry);
+
+    /** \brief Helper method to insert values into the database. 
+     * \param[in] config Application configuration that contains the database handle. 
+     * \param[in] startTime Task start time. 
+     * \param[in] name Task name. 
+     * \param[in] duration Task duration in ms.
+     *
+     */
+    void insertUnitIntoDatabase(Configuration &config, const unsigned long long startTime, const std::string name, const unsigned long long duration);
+
+    /** \brief Returns the result of a given query to the task table in the database.
+     * \param[in] config Application configuration that contains the database handle.
+     * 
+     */
+    TaskTableEntries tasksQuery(const std::string &stmt, Utils::Configuration &config);
+
+    /** \brief Returns the contents of the task table in the database. 
+     * \param[in] config Application configuration that contains the database handle.
+     *
+     */
+    TaskTableEntries tasksList(Utils::Configuration &config);
+
+    struct TaskDuration
+    {
+        QString name;   /** name of the task. */
+        QTime duration; /** task duration. */
+
+        /** \brief Struct TaskDuration empty constructor.
+         * 
+         */
+        TaskDuration() :
+            name{"Unknown"},
+            duration{QTime{0, 0, 0}} {};
+
+        /** \brief Struct TaskDuration constructor.
+         * \param[in] taskName Task name.
+         * \param[in] taskTimeMs Task duration time in milliseconds. 
+         * 
+         */
+        TaskDuration(const QString& taskName, const unsigned long long& taskTimeMs) :
+            name{taskName},
+            duration{QTime{0,0,0}.addMSecs(taskTimeMs)} {};
+
+        /** \brief Struct TaskDuration constructor.
+        * \param[in] taskName Task name.
+        * \param[in] taskTime Task duration time. 
+        * 
+        */
+        TaskDuration(const QString& taskName, const QTime& taskTime) :
+            name{taskName},
+            duration{taskTime} {};
+
+    };
+    using TaskDurationList = std::vector<TaskDuration>;
+
+    using TaskHistogram = std::map<unsigned long long, TaskDurationList>;
+
+    /** \brief Returns the task names and times of the database. 
+     * \param[in] config Application configuration that contains the database handle.
+     * 
+     */
+    TaskDurationList taskNamesAndTimes(Utils::Configuration &config);
+
+    /** \brief Returns the histogram of task for the given days interval.
+     * \param[in] from Start date. 
+     * \param[in] to End date.
+     * \param[in] config Application configuration that contains the database handle.
+     *
+     */
+    TaskHistogram taskHistogram(const QDateTime &from, const QDateTime &to, Utils::Configuration &config);
+
+    /** \brief SQLite table contents callback.
+     * \param[inout] p_data Data conteiner pointer to insert the data of the table.
+     * \param[in] num_fields Number of fields
+     * \param[in] p_fields Fields data pointer. 
+     * \param[in] p_col_names table column names.
+     *
+     */
+    int tasksTableCallback(void* p_data, int num_fields, char** p_fields, char** p_col_names);
+
+    /** \brief Helper method to return the camel case version of a given string.
+     * \param[in] s String to transform.
+     *
+     */
+    QString toCamelCase(const QString& s);
 } // namespace Utils
 
 #endif // UTILS_H_

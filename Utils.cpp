@@ -29,9 +29,19 @@
 #include <QDialog>
 #include <QWidget>
 #include <QSvgRenderer>
+#include <QStandardPaths>
+#include <QFileInfo>
 
 // C++
 #include <iostream>
+#include <functional>
+#include <stringapiset.h>
+
+// SQLite
+extern "C"
+{
+#include <sqlite3/sqlite3.h>
+}
 
 const QString INI_FILENAME = "WorkTimer.ini";
 const QString WORKUNIT_TIME = "Work unit time";
@@ -47,8 +57,13 @@ const QString DESKTOP_POSITION = "Desktop widget position";
 const QString SOUND_USE = "Use sounds";
 const QString SOUND_TIC_TAC = "Use continuous tic-tac";
 const QString ICON_MESSAGES = "Show tray icon messages";
+const QString DATA_DIRECTORY = "Data directory";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
+
+// - Estadísticas y QtCharts, implementar.
+// - Exportar base de datos a excel.
+//
 
 //-----------------------------------------------------------------
 Utils::ClickableHoverLabel::ClickableHoverLabel(QWidget* parent, Qt::WindowFlags f) :
@@ -105,15 +120,26 @@ void Utils::Configuration::load()
     m_useSound = settings.value(SOUND_USE, true).toBool();
     m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
     m_iconMessages = settings.value(ICON_MESSAGES, true).toBool();
+
+    m_dataDir = settings.value(DATA_DIRECTORY, "").toString();
+
+    if (m_dataDir.isEmpty() || !QDir{QDir::fromNativeSeparators(m_dataDir)}.exists()) {
+        m_dataDir = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).first();
+        QDir().mkdir(m_dataDir);
+    }
+
+    openDatabase();
 }
 
 //-----------------------------------------------------------------
 int Utils::Configuration::minutesInSession() const
 {
     int minutes = m_unitsPerSession * m_workUnitTime;
-    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime + m_longBreakTime) - (m_unitsPerSession % 4 == 0 ? m_longBreakTime : 0);
-    if((m_unitsPerSession % 4) != 0)
-        minutes += ((m_unitsPerSession % 4)-1) * m_shortBreakTime;
+    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime + m_longBreakTime) -
+               (m_unitsPerSession % 4 == 0 ? m_longBreakTime : 0);
+    if ((m_unitsPerSession % 4) != 0) {
+        minutes += ((m_unitsPerSession % 4) - 1) * m_shortBreakTime;
+    }
 
     return minutes;
 }
@@ -158,6 +184,180 @@ QSettings Utils::Configuration::applicationSettings() const
 }
 
 //-----------------------------------------------------------------
+void Utils::Configuration::openDatabase()
+{
+    int retValue = 0;
+    if (SQLITE_OK != (retValue = sqlite3_initialize())) {
+        const std::string message =
+            std::string("Unable to initialize SQLite engine! Error: ") + std::to_string(retValue);
+        throw std::runtime_error(message.c_str());
+    }
+
+    // Sets sqlite3 temporal directory, needed for windows.
+    const auto tempPathWS = QDir::tempPath().toStdWString();
+    char zPathBuf[MAX_PATH + 1];
+    memset(zPathBuf, 0, sizeof(zPathBuf));
+    WideCharToMultiByte(CP_UTF8, 0, tempPathWS.c_str(), -1, zPathBuf, sizeof(zPathBuf), NULL, NULL);
+    sqlite3_temp_directory = sqlite3_mprintf("%s", zPathBuf);
+
+    const auto dataDir = QDir{m_dataDir};
+    const auto dbFilename = QDir{m_dataDir}.absoluteFilePath("worktimer.db");
+
+    if (SQLITE_OK != (retValue = sqlite3_open_v2(dbFilename.toStdString().c_str(), &m_database,
+                                                 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr))) {
+        const std::string message = std::string("Unable to open SQLite database! Error: ") + std::to_string(retValue);
+        throw std::runtime_error(message.c_str());
+    }
+
+    std::string createQuery =
+        "CREATE TABLE IF NOT EXISTS TASKS(TTIME INTEGER PRIMARY KEY, TNAME TEXT NOT NULL, TDURATION INTEGER NOT NULL);";
+    sqlite3_stmt* createStmt;
+    sqlite3_prepare(m_database, createQuery.c_str(), createQuery.size(), &createStmt, NULL);
+    if (SQLITE_DONE != (retValue = sqlite3_step(createStmt))) {
+        const std::string message = std::string("Unable to create task_time table! Error: ") + std::to_string(retValue);
+        throw std::runtime_error(message.c_str());
+    }
+    sqlite3_finalize(createStmt);
+}
+
+//-----------------------------------------------------------------
+void Utils::insertUnitIntoDatabase(Configuration& config, const Utils::TaskTableEntry &entry)
+{
+    std::string insertQuery = "INSERT INTO TASKS(TTIME, TNAME, TDURATION) VALUES ('" + std::to_string(entry.taskTime) + "','" +
+                              entry.name + "','" + std::to_string(entry.durationMs) + "');";
+    sqlite3_stmt* insertStmt;
+    sqlite3_prepare(config.m_database, insertQuery.c_str(), insertQuery.size(), &insertStmt, NULL);
+    int retValue = 0;
+    if (SQLITE_DONE != (retValue = sqlite3_step(insertStmt))) {
+        const std::string message = std::string("Unable to insert data! Error: ") + std::to_string(retValue);
+        throw std::runtime_error(message.c_str());
+    }
+    sqlite3_finalize(insertStmt);
+}
+
+//-----------------------------------------------------------------
+int Utils::tasksTableCallback(void* p_data, int num_fields, char** p_fields, char** p_col_names)
+{
+    auto tableContents = static_cast<Utils::TaskTableEntries*>(p_data);
+    try {
+        const auto taskName = p_fields[0];
+        const auto taskTime = atoi(p_fields[1]);
+        const auto taskDuration = atoi(p_fields[2]);
+        tableContents->emplace_back(taskName, taskTime, taskDuration);
+    } catch (...) {
+        // abort select on failure, don't let exception propogate thru sqlite3 call-stack
+        return 1;
+    }
+    return 0;
+}
+
+//-----------------------------------------------------------------
+void Utils::insertUnitIntoDatabase(Configuration& config, const unsigned long long startTime, const std::string name,
+                                   const unsigned long long duration)
+{
+    insertUnitIntoDatabase(config, TaskTableEntry{name, startTime, duration});
+}
+
+//-----------------------------------------------------------------
+Utils::TaskTableEntries Utils::tasksQuery(const std::string &stmt, Utils::Configuration &config)
+{
+    Utils::TaskTableEntries contents;
+
+    char* errmsg;
+    int ret = sqlite3_exec(config.m_database, stmt.c_str(), &Utils::tasksTableCallback, &contents, &errmsg);
+    if (ret != SQLITE_OK) {
+        std::cerr << "Error in select statement " << stmt << "[" << errmsg << "]\n";
+    } else {
+        std::cerr << contents.size() << " records returned.\n";
+    }
+
+    return contents;
+}
+
+//-----------------------------------------------------------------
+Utils::TaskTableEntries Utils::tasksList(Utils::Configuration& config)
+{
+    const std::string stmt = "SELECT * FROM TASKS;";
+    return tasksQuery(stmt, config);
+}
+
+//-----------------------------------------------------------------
+QString Utils::toCamelCase(const QString& s)
+{
+    QStringList parts = s.split(' ', Qt::SkipEmptyParts);
+    for (int i = 0; i < parts.size(); ++i) {
+        parts[i].replace(0, 1, parts[i][0].toUpper());
+    }
+
+    return parts.join(" ");
+};
+
+//-----------------------------------------------------------------
+Utils::TaskDurationList Utils::taskNamesAndTimes(Utils::Configuration& config)
+{
+    std::map<QString, QTime> taskMap;
+    for(auto &task: tasksList(config))
+    {
+        const auto taskName = toCamelCase(QString::fromStdString(task.name));
+        taskMap[taskName] = taskMap[taskName].addMSecs(task.durationMs);
+    }
+
+    Utils::TaskDurationList tasks;
+
+    for(auto &task: taskMap)
+    {
+        tasks.emplace_back(task.first, task.second);
+    }
+
+    std::sort(tasks.begin(), tasks.end(), [](Utils::TaskDuration &lhs, Utils::TaskDuration &rhs){ return lhs.name < rhs.name;});
+
+    return tasks;
+}
+
+//-----------------------------------------------------------------
+Utils::TaskHistogram Utils::taskHistogram(const QDateTime& from, const QDateTime& to, Utils::Configuration &config)
+{
+    auto beginning = from;
+    beginning.setTime(QTime{0,0,0});
+    auto ending = to;
+    ending.setTime(QTime{0,0,0});
+
+    const std::string stmt = "SELECT * FROM TASKS WHERE TTIME >= " + std::to_string(beginning.toMSecsSinceEpoch()) + " AND TTIME < " + std::to_string(ending.toMSecsSinceEpoch()) + ";";
+
+    const auto tasksQueried = tasksQuery(stmt, config);
+
+    TaskHistogram result;
+    TaskDurationList tasks;
+    std::map<QString, QTime> taskMap;
+    for(unsigned long long i = beginning.toMSecsSinceEpoch(); i < static_cast<unsigned long long>(ending.toMSecsSinceEpoch());)
+    {
+        beginning = beginning.addDays(1);
+        taskMap.clear();
+        tasks.clear();
+
+        for(auto &task: tasksQueried)
+        {
+            if(task.taskTime < i || task.taskTime > static_cast<unsigned long long>(beginning.toMSecsSinceEpoch())) continue;
+
+            const auto taskName = toCamelCase(QString::fromStdString(task.name));
+            taskMap[taskName] = taskMap[taskName].addMSecs(task.durationMs);
+        }
+
+        for (auto& task : taskMap) {
+            tasks.emplace_back(task.first, task.second);
+        }
+
+        std::sort(tasks.begin(), tasks.end(),
+                  [](Utils::TaskDuration& lhs, Utils::TaskDuration& rhs) { return lhs.name < rhs.name; });
+
+        result[i] = tasks;
+        i = beginning.toMSecsSinceEpoch();
+    }
+
+    return result;
+}
+
+//-----------------------------------------------------------------
 void Utils::scaleDialog(QDialog* window)
 {
     if (window) {
@@ -188,7 +388,7 @@ QPixmap Utils::svgPixmap(const QString& name, const QColor color)
     // create painter to act over pixmap
     QPainter pixPainter(&pix);
     // use renderer to render over painter which paints on pixmap
-    svgRenderer.setAspectRatioMode(Qt::AspectRatioMode::KeepAspectRatio);    
+    svgRenderer.setAspectRatioMode(Qt::AspectRatioMode::KeepAspectRatio);
     svgRenderer.render(&pixPainter);
 
     return pix;

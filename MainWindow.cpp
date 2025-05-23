@@ -34,6 +34,12 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 
+// SQLite
+extern "C"
+{
+#include <sqlite3/sqlite3.h>
+}
+
 const QString TIME_FORMAT = "hh:mm:ss";
 
 //----------------------------------------------------------------------------
@@ -64,6 +70,8 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
 MainWindow::~MainWindow()
 {
     m_configuration.save();
+    if(m_configuration.m_database)
+        sqlite3_shutdown();
 }
 
 //----------------------------------------------------------------------------
