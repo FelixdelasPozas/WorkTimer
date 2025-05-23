@@ -37,15 +37,15 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="icon">
         <iconset resource="rsc/resources.qrc">
-         <normaloff>:/WorkTimer/pencil.svg</normaloff>:/WorkTimer/pencil.svg</iconset>
+         <normaloff>:/WorkTimer/clock.svg</normaloff>:/WorkTimer/clock.svg</iconset>
        </attribute>
        <attribute name="title">
-        <string>Units</string>
+        <string>Current units</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
         <property name="spacing">
@@ -223,7 +223,7 @@ font-weight:bold
            <bool>false</bool>
           </property>
           <property name="columnCount">
-           <number>3</number>
+           <number>4</number>
           </property>
           <attribute name="horizontalHeaderVisible">
            <bool>true</bool>
@@ -246,6 +246,11 @@ font-weight:bold
             <string>Completed units</string>
            </property>
           </column>
+          <column>
+           <property name="text">
+            <string>Started</string>
+           </property>
+          </column>
          </widget>
         </item>
        </layout>
@@ -256,9 +261,12 @@ font-weight:bold
          <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
        </attribute>
        <attribute name="title">
-        <string>Statistics</string>
+        <string>Pie chart</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -273,6 +281,35 @@ font-weight:bold
         </property>
         <item>
          <widget class="QChartView" name="widget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="icon">
+        <iconset resource="rsc/resources.qrc">
+         <normaloff>:/WorkTimer/barchart.svg</normaloff>:/WorkTimer/barchart.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Histogram</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QChartView" name="widget_2" native="true"/>
         </item>
        </layout>
       </widget>

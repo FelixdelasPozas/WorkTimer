@@ -234,25 +234,26 @@ void MainWindow::closeEvent(QCloseEvent* e)
         m_trayIcon->show();
 
         e->accept();
-    } else {
-        if (m_timer.status() != WorkTimer::Status::Stopped) {
-            QMessageBox msgBox{this};
-            msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
-            msgBox.setIcon(QMessageBox::Icon::Information);
-            msgBox.setText("The timer is still running. Do you really want to exit?");
-            msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
-            msgBox.setStandardButtons(QMessageBox::StandardButton::Cancel | QMessageBox::StandardButton::Ok);
-
-            if (msgBox.exec() != QMessageBox::Ok) {
-                return;
-            }
-        }
-
-        if (e) {
-            QMainWindow::closeEvent(e);
-        }
-        QApplication::exit(0);
+        return;
     }
+
+    if (m_timer.status() != WorkTimer::Status::Stopped) {
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Information);
+        msgBox.setText("The timer is still running. Do you really want to exit?");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Cancel | QMessageBox::StandardButton::Ok);
+
+        if (msgBox.exec() != QMessageBox::Ok) {
+            return;
+        }
+    }
+
+    if (e) {
+        QMainWindow::closeEvent(e);
+    }
+    QApplication::exit(0);
 }
 
 //----------------------------------------------------------------------------
@@ -367,6 +368,9 @@ void MainWindow::onTaskNameClicked()
         item = new QTableWidgetItem("0");
         item->setTextAlignment(Qt::AlignCenter);
         m_taskTable->setItem(rows, 2, item);
+        item = new QTableWidgetItem(QDateTime::currentDateTime().time().toString(TIME_FORMAT));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_taskTable->setItem(rows, 3, item);
         m_timer.setTaskTitle(taskName);
         m_widget.setTitle(taskName);
         insertedNew = true;
@@ -376,7 +380,6 @@ void MainWindow::onTaskNameClicked()
     {
         const auto elapsedTime = QTime{0,0,0}.addMSecs(elapsedMS);
         updateItemTime(elapsedTime, rows - 1, m_taskTable);
-        qDebug() << "enter" << rows-1 << elapsedTime << elapsedMS;
     }
 }
 

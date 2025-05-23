@@ -193,7 +193,7 @@ void Utils::Configuration::openDatabase()
         throw std::runtime_error(message.c_str());
     }
 
-    // Sets sqlite3 temporal directory, needed for windows.
+    // Sets sqlite3 temporal directory, needed for windows apparently.
     const auto tempPathWS = QDir::tempPath().toStdWString();
     char zPathBuf[MAX_PATH + 1];
     memset(zPathBuf, 0, sizeof(zPathBuf));
