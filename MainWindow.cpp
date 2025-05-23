@@ -41,6 +41,7 @@ extern "C"
 }
 
 const QString TIME_FORMAT = "hh:mm:ss";
+const int CustomRole = Qt::UserRole+1;
 
 //----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
@@ -84,9 +85,11 @@ void MainWindow::connectSignals()
     connect(actionConfiguration, SIGNAL(triggered(bool)), this, SLOT(openConfiguration()));
     connect(actionQuit, SIGNAL(triggered(bool)), this, SLOT(quitApplication()));
     connect(actionTask, SIGNAL(triggered(bool)), this, SLOT(onTaskNameClicked()));
+
+    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
+
     connect(&m_timer, SIGNAL(progress(unsigned int)), this, SLOT(onProgressUpdated(unsigned int)));
     connect(&m_timer, SIGNAL(sessionEnded()), this, SLOT(onSessionEnded()));
-
     connect(&m_timer, SIGNAL(workUnitEnded()), this, SLOT(onUnitEnded()));
     connect(&m_timer, SIGNAL(shortBreakEnded()), this, SLOT(onUnitEnded()));
     connect(&m_timer, SIGNAL(longBreakEnded()), this, SLOT(onUnitEnded()));
@@ -193,6 +196,11 @@ void MainWindow::updateItemTime(const QTime& timeToAdd, const int row, QTableWid
     auto itemTime = QTime::fromString(table->item(row, 1)->text());
     itemTime = itemTime.addMSecs(QTime{0,0,0}.msecsTo(timeToAdd));
     table->item(row,1)->setText(itemTime.toString(TIME_FORMAT));
+
+    const auto dateTime = table->item(row,3)->data(CustomRole).toDateTime();
+    const auto taskMs = QTime{0,0,0}.msecsTo(dateTime.time());
+    const auto taskName = table->item(row,0)->text().toStdString();
+    Utils::insertUnitIntoDatabase(m_configuration, dateTime.currentMSecsSinceEpoch(), taskName, taskMs);
 }
 
 //----------------------------------------------------------------------------
@@ -204,6 +212,29 @@ void MainWindow::updateItemUnits(const int unitToAdd, const int row, QTableWidge
     auto itemUnits = atoi(table->item(row, 2)->text().toStdString().c_str());
     itemUnits += unitToAdd;
     table->item(row,2)->setText(QString("%1").arg(itemUnits));
+}
+
+//---------------------------------------------------------------------------- 
+void MainWindow::insertItem(const QString& name)
+{
+    const auto rows = m_taskTable->rowCount();
+    m_taskTable->insertRow(rows);
+    auto item = new QTableWidgetItem(name);
+    item->setTextAlignment(Qt::AlignCenter);
+    m_taskTable->setItem(rows, 0, item);
+    item = new QTableWidgetItem(QTime{0, 0, 0}.toString(TIME_FORMAT));
+    item->setTextAlignment(Qt::AlignCenter);
+    m_taskTable->setItem(rows, 1, item);
+    item = new QTableWidgetItem("0");
+    item->setTextAlignment(Qt::AlignCenter);
+    m_taskTable->setItem(rows, 2, item);
+    const auto dateTime = QDateTime::currentDateTime();
+    item = new QTableWidgetItem(dateTime.time().toString(TIME_FORMAT));
+    item->setData(CustomRole, dateTime);
+    item->setTextAlignment(Qt::AlignCenter);
+    m_taskTable->setItem(rows, 3, item);
+
+    Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch(), name.toStdString(), 0);
 }
 
 //----------------------------------------------------------------------------
@@ -224,6 +255,12 @@ void MainWindow::quitApplication()
     } else {
         closeEvent(nullptr);
     }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::onTabChanged(int index)
+{
+    // TODO
 }
 
 //----------------------------------------------------------------------------
@@ -358,19 +395,7 @@ void MainWindow::onTaskNameClicked()
     bool insertedNew = false;
     const auto rows = m_taskTable->rowCount();
     if (rows == 0 || m_taskTable->item(rows - 1, 0)->text().compare(taskName, Qt::CaseInsensitive) != 0) {
-        m_taskTable->insertRow(rows);
-        auto item = new QTableWidgetItem(taskName);
-        item->setTextAlignment(Qt::AlignCenter);
-        m_taskTable->setItem(rows, 0, item);
-        item = new QTableWidgetItem(QTime{0, 0, 0}.toString(TIME_FORMAT));
-        item->setTextAlignment(Qt::AlignCenter);
-        m_taskTable->setItem(rows, 1, item);
-        item = new QTableWidgetItem("0");
-        item->setTextAlignment(Qt::AlignCenter);
-        m_taskTable->setItem(rows, 2, item);
-        item = new QTableWidgetItem(QDateTime::currentDateTime().time().toString(TIME_FORMAT));
-        item->setTextAlignment(Qt::AlignCenter);
-        m_taskTable->setItem(rows, 3, item);
+        insertItem(taskName);
         m_timer.setTaskTitle(taskName);
         m_widget.setTitle(taskName);
         insertedNew = true;

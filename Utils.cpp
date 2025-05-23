@@ -223,7 +223,7 @@ void Utils::Configuration::openDatabase()
 //-----------------------------------------------------------------
 void Utils::insertUnitIntoDatabase(Configuration& config, const Utils::TaskTableEntry &entry)
 {
-    std::string insertQuery = "INSERT INTO TASKS(TTIME, TNAME, TDURATION) VALUES ('" + std::to_string(entry.taskTime) + "','" +
+    std::string insertQuery = "INSERT OR REPLACE INTO TASKS(TTIME, TNAME, TDURATION) VALUES ('" + std::to_string(entry.taskTime) + "','" +
                               entry.name + "','" + std::to_string(entry.durationMs) + "');";
     sqlite3_stmt* insertStmt;
     sqlite3_prepare(config.m_database, insertQuery.c_str(), insertQuery.size(), &insertStmt, NULL);

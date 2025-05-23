@@ -116,6 +116,12 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void updateItemUnits(const int unitToAdd, const int row, QTableWidget *table);
 
+    /** \brief Helper method to insert a unit into the tasks table.
+     * \param[in] name Task name. 
+     *
+     */
+    void insertItem(const QString &name);
+
   private slots:
     /** \brief Shows the About dialog.
      */
@@ -162,6 +168,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     /** \brief Helper method to help with application close.
      */
     void quitApplication();
+
+    /** \brief Updates the tab graphics when the tab changes.
+     * \param[in] index Current tab index. 
+     */
+    void onTabChanged(int index);
 
   private:
     Utils::Configuration m_configuration; /** application configuration. */
