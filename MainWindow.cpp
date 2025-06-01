@@ -197,10 +197,14 @@ void MainWindow::updateItemTime(const QTime& timeToAdd, const int row, QTableWid
     itemTime = itemTime.addMSecs(QTime{0,0,0}.msecsTo(timeToAdd));
     table->item(row,1)->setText(itemTime.toString(TIME_FORMAT));
 
-    const auto dateTime = table->item(row,3)->data(CustomRole).toDateTime();
-    const auto taskMs = QTime{0,0,0}.msecsTo(dateTime.time());
-    const auto taskName = table->item(row,0)->text().toStdString();
-    Utils::insertUnitIntoDatabase(m_configuration, dateTime.currentMSecsSinceEpoch(), taskName, taskMs);
+    if(table != m_unitTable)
+    {
+        const auto dateTime = table->item(row,3)->data(CustomRole).toDateTime();
+        const auto taskMs = QTime{0,0,0}.msecsTo(itemTime);
+        const auto taskName = table->item(row,0)->text().toStdString();
+        
+        Utils::insertUnitIntoDatabase(m_configuration, dateTime.toMSecsSinceEpoch(), taskName, taskMs);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -261,6 +265,7 @@ void MainWindow::quitApplication()
 void MainWindow::onTabChanged(int index)
 {
     // TODO
+    // refresh graphs
 }
 
 //----------------------------------------------------------------------------
@@ -285,11 +290,10 @@ void MainWindow::closeEvent(QCloseEvent* e)
         if (msgBox.exec() != QMessageBox::Ok) {
             return;
         }
+
+        onStopClicked();
     }
 
-    if (e) {
-        QMainWindow::closeEvent(e);
-    }
     QApplication::exit(0);
 }
 
@@ -324,6 +328,8 @@ void MainWindow::onPlayClicked()
         }
     }
 
+    static bool taskChangeEnabled = true;
+
     switch (m_timer.status()) {
         case WorkTimer::Status::Stopped:
             m_timer.start();
@@ -335,13 +341,20 @@ void MainWindow::onPlayClicked()
             m_stopEntry->setEnabled(true);
             actionConfiguration->setEnabled(false);
             break;
-        case WorkTimer::Status::Work:
         case WorkTimer::Status::ShortBreak:
         case WorkTimer::Status::LongBreak:
             m_timer.pause();
             actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
             m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
             m_timerEntry->setText("Start timer");
+            taskChangeEnabled = false;
+            break;
+        case WorkTimer::Status::Work:
+            m_timer.pause();
+            actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
+            m_timerEntry->setIcon(QIcon(":/WorkTimer/play.svg"));
+            m_timerEntry->setText("Start timer");
+            taskChangeEnabled = true;
             break;
         case WorkTimer::Status::Paused:
             m_timer.pause();
@@ -353,14 +366,37 @@ void MainWindow::onPlayClicked()
             break;
     }
 
-    actionTask->setEnabled(true);
-    m_taskEntry->setEnabled(true);
+    actionTask->setEnabled(taskChangeEnabled);
+    m_taskEntry->setEnabled(taskChangeEnabled);
     m_widget.setVisible(m_configuration.m_useWidget);
 }
 
 //----------------------------------------------------------------------------
 void MainWindow::onStopClicked()
 {
+    if(m_timer.status() != WorkTimer::Status::Stopped)
+    {
+        const auto elapsedMs = m_timer.elapsed();
+        const auto elapsedTime = QTime{0, 0, 0}.addMSecs(elapsedMs);
+
+        switch (m_timer.status()) {
+            case WorkTimer::Status::Work:
+                updateItemTime(elapsedTime, m_taskTable->rowCount() - 1, m_taskTable);
+                break;
+            case WorkTimer::Status::ShortBreak:
+                Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch() - elapsedMs,
+                                            "Short break", elapsedMs);
+                break;
+            case WorkTimer::Status::LongBreak:
+                Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch() - elapsedMs,
+                                            "Long break", elapsedMs);
+                break;
+            default:
+            case WorkTimer::Status::Paused:
+                break;
+        }
+    }
+
     m_timer.stop();
     actionStop->setEnabled(false);
     actionTimer->setIcon(QIcon(":/WorkTimer/play.svg"));
@@ -465,10 +501,12 @@ void MainWindow::onUnitEnded()
         case WorkTimer::Status::ShortBreak:
             seconds = m_configuration.m_shortBreakTime * 60;
             m_globalProgress += m_configuration.m_shortBreakTime;
+            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), "Short break", seconds * 1000);
             break;
         case WorkTimer::Status::LongBreak:
             seconds = m_configuration.m_longBreakTime * 60;
             m_globalProgress += m_configuration.m_longBreakTime;
+            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), "Long break", seconds * 1000);
             break;
         case WorkTimer::Status::Stopped:
         case WorkTimer::Status::Paused:
@@ -486,6 +524,8 @@ void MainWindow::onUnitStarted()
 {
     unsigned int minutes = 0;
     QString iconMessage;
+    QString taskName;
+    bool taskChangeEnabled = true;
     switch(m_timer.status())
     {
         case WorkTimer::Status::Stopped:
@@ -493,29 +533,35 @@ void MainWindow::onUnitStarted()
             minutes = m_configuration.m_workUnitTime;   
             m_widget.setColor(m_configuration.m_workColor);
             m_widget.setIcon(":/WorkTimer/work.svg");
-            m_widget.setTitle(m_timer.getTaskTitle());
+            taskName = m_timer.getTaskTitle();
             iconMessage = "Started a work unit";
             break;
         case WorkTimer::Status::ShortBreak:
             minutes = m_configuration.m_shortBreakTime;
             m_widget.setColor(m_configuration.m_shortBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
-            m_widget.setTitle("Short break");
+            taskName = "Short break";
             iconMessage = "Started a short break";
+            taskChangeEnabled = false;
             break;
         case WorkTimer::Status::LongBreak:
             minutes = m_configuration.m_longBreakTime;
             m_widget.setColor(m_configuration.m_longBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
-            m_widget.setTitle("Long break");
+            taskName = "Long break";
             iconMessage = "Started a long break";
+            taskChangeEnabled = false;
             break;
         default:
         case WorkTimer::Status::Paused:
+            taskChangeEnabled = false;
             break;
     }
 
     m_widget.setProgress(0);
+    m_widget.setTitle(taskName);
+    actionTask->setEnabled(taskChangeEnabled);
+    m_taskEntry->setEnabled(taskChangeEnabled);
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
     m_trayIcon->setToolTip(m_timer.statusMessage());
 
