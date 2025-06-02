@@ -33,6 +33,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QChartView>
 
 // SQLite
 extern "C"
@@ -41,6 +42,8 @@ extern "C"
 }
 
 const QString TIME_FORMAT = "hh:mm:ss";
+const QString SHORT_BREAK = "Short break";
+const QString LONG_BREAK = "Long break";
 const int CustomRole = Qt::UserRole+1;
 
 //----------------------------------------------------------------------------
@@ -63,6 +66,8 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
     applyConfiguration();
 
     initIconAndMenu();
+
+    initCharts();
 
     initTables();
 }
@@ -188,6 +193,56 @@ void MainWindow::initIconAndMenu()
 }
 
 //----------------------------------------------------------------------------
+void MainWindow::initCharts()
+{
+    // Pie tab
+    auto pieTabContents = new QWidget();
+    pieTabContents->setStyleSheet("QWidget{background-color: transparent;}");
+    auto pieTabLayout = new QVBoxLayout();
+    pieTabLayout->setContentsMargins(0,0,0,0);
+    pieTabLayout->setSpacing(0);
+    pieTabContents->setLayout(pieTabLayout);
+
+    m_pieChart = new QChartView;
+    m_pieChart->setRenderHint(QPainter::Antialiasing);
+    m_pieChart->setBackgroundBrush(QBrush{Qt::transparent});
+    m_pieChart->setRubberBand(QChartView::NoRubberBand);
+    m_pieChart->setToolTip(tr("Statistics pie chart."));
+    m_pieChart->setContentsMargins(0, 0, 0, 0);
+
+    m_pieError = new QLabel(tr("No data found."));
+    m_pieError->setVisible(false);
+
+    pieTabLayout->addWidget(m_pieChart);
+    pieTabLayout->addWidget(m_pieError);
+
+    tabWidget->addTab(pieTabContents, QIcon(":/WorkTimer/chart.svg"), tr("Pie chart"));
+
+    // Pie tab
+    auto histogramTabContents = new QWidget();
+    histogramTabContents->setStyleSheet("QWidget{background-color: transparent;}");
+    auto histogramTabLayout = new QVBoxLayout();
+    histogramTabLayout->setContentsMargins(0,0,0,0);
+    histogramTabLayout->setSpacing(0);
+    histogramTabContents->setLayout(histogramTabLayout);
+
+    m_histogramChart = new QChartView;
+    m_histogramChart->setRenderHint(QPainter::Antialiasing);
+    m_histogramChart->setBackgroundBrush(QBrush{Qt::transparent});
+    m_histogramChart->setRubberBand(QChartView::NoRubberBand);
+    m_histogramChart->setToolTip(tr("Statistics pie chart."));
+    m_histogramChart->setContentsMargins(0, 0, 0, 0);
+
+    m_histogramError = new QLabel(tr("No data found."));
+    m_histogramError->setVisible(false);
+
+    histogramTabLayout->addWidget(m_histogramChart);
+    histogramTabLayout->addWidget(m_histogramError);
+
+    tabWidget->addTab(histogramTabContents, QIcon(":/WorkTimer/barchart.svg"), tr("Histogram"));    
+}
+
+//----------------------------------------------------------------------------
 void MainWindow::updateItemTime(const QTime& timeToAdd, const int row, QTableWidget* table)
 {
     if(!table || table->rowCount() < row)
@@ -239,6 +294,18 @@ void MainWindow::insertItem(const QString& name)
     m_taskTable->setItem(rows, 3, item);
 
     Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch(), name.toStdString(), 0);
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::updateChartsContents(const QDateTime& from, const QDateTime& to)
+{
+    auto today = QDateTime::currentDateTime();
+    today.setTime(QTime{0,0,0});
+    const auto monday = today.addDays(today.date().dayOfWeek() - 1);
+    const auto week = today.date().weekNumber();
+    const auto units = Utils::taskHistogram(monday, monday.addDays(7), m_configuration);
+
+    // TODO
 }
 
 //----------------------------------------------------------------------------
@@ -385,11 +452,11 @@ void MainWindow::onStopClicked()
                 break;
             case WorkTimer::Status::ShortBreak:
                 Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch() - elapsedMs,
-                                            "Short break", elapsedMs);
+                                            SHORT_BREAK.toStdString(), elapsedMs);
                 break;
             case WorkTimer::Status::LongBreak:
                 Utils::insertUnitIntoDatabase(m_configuration, QDateTime::currentDateTime().toMSecsSinceEpoch() - elapsedMs,
-                                            "Long break", elapsedMs);
+                                            LONG_BREAK.toStdString(), elapsedMs);
                 break;
             default:
             case WorkTimer::Status::Paused:
@@ -501,12 +568,12 @@ void MainWindow::onUnitEnded()
         case WorkTimer::Status::ShortBreak:
             seconds = m_configuration.m_shortBreakTime * 60;
             m_globalProgress += m_configuration.m_shortBreakTime;
-            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), "Short break", seconds * 1000);
+            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), SHORT_BREAK.toStdString(), seconds * 1000);
             break;
         case WorkTimer::Status::LongBreak:
             seconds = m_configuration.m_longBreakTime * 60;
             m_globalProgress += m_configuration.m_longBreakTime;
-            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), "Long break", seconds * 1000);
+            Utils::insertUnitIntoDatabase(m_configuration, 1000 * (QDateTime::currentDateTime().toSecsSinceEpoch() - seconds), LONG_BREAK.toStdString(), seconds * 1000);
             break;
         case WorkTimer::Status::Stopped:
         case WorkTimer::Status::Paused:
@@ -540,7 +607,7 @@ void MainWindow::onUnitStarted()
             minutes = m_configuration.m_shortBreakTime;
             m_widget.setColor(m_configuration.m_shortBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
-            taskName = "Short break";
+            taskName = SHORT_BREAK;
             iconMessage = "Started a short break";
             taskChangeEnabled = false;
             break;
@@ -548,7 +615,7 @@ void MainWindow::onUnitStarted()
             minutes = m_configuration.m_longBreakTime;
             m_widget.setColor(m_configuration.m_longBreakColor);
             m_widget.setIcon(":/WorkTimer/rest.svg");
-            taskName = "Long break";
+            taskName = LONG_BREAK;
             iconMessage = "Started a long break";
             taskChangeEnabled = false;
             break;

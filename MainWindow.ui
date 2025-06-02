@@ -255,64 +255,6 @@ font-weight:bold
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
-       <attribute name="icon">
-        <iconset resource="rsc/resources.qrc">
-         <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
-       </attribute>
-       <attribute name="title">
-        <string>Pie chart</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QChartView" name="widget" native="true"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_3">
-       <attribute name="icon">
-        <iconset resource="rsc/resources.qrc">
-         <normaloff>:/WorkTimer/barchart.svg</normaloff>:/WorkTimer/barchart.svg</iconset>
-       </attribute>
-       <attribute name="title">
-        <string>Histogram</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QChartView" name="widget_2" native="true"/>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
     <item>
@@ -470,12 +412,6 @@ font-weight:bold
    <class>ProgressWidget</class>
    <extends>QProgressBar</extends>
    <header location="global">ProgressWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QChartView</class>
-   <extends>QWidget</extends>
-   <header location="global">QChartView</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

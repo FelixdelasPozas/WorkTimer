@@ -32,6 +32,8 @@
 #include <QSystemTrayIcon>
 #include <QDialog>
 
+class QChartView;
+
 /** \class FinishDialog
  * \brief Implements the dialog to show when finising the session. Needed
  *        because QMessageBox triggers a sound than inteferes with the finishing
@@ -100,6 +102,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void initIconAndMenu();
 
+    /** \brief Initializes the charts. 
+     *
+     */
+    void initCharts();
+
     /** \brief Helper method to update the time of a row in a table. 
      * \param[in] timeToAdd time to add to the item.
      * \param[in] row Row of the item.
@@ -121,6 +128,13 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      *
      */
     void insertItem(const QString &name);
+
+    /** \brief Fills the charts with the data of the given time interval. 
+     * \param[in] from Start date.
+     * \param[in] to End date. 
+     *
+     */
+    void updateChartsContents(const QDateTime &from, const QDateTime &to);
 
   private slots:
     /** \brief Shows the About dialog.
@@ -186,6 +200,10 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     QAction *m_taskEntry;                 /** tray menu entry for changing the task name. */
     bool m_needsExit = false;             /** true to exit application at close(), false otherwise. */
     QTaskBarButton m_taskBarButton;       /** taskbar progress widget. */
+    QLabel* m_pieError;                   /** Pie chart error widget. */
+    QLabel* m_histogramError;             /** Histogram chart error widget. */
+    QChartView* m_pieChart;               /** pie chart view.  */
+    QChartView* m_histogramChart;         /** histogram chart view.         */
 };
 
 #endif
