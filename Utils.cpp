@@ -35,6 +35,7 @@
 // C++
 #include <iostream>
 #include <functional>
+#include <string>
 #include <stringapiset.h>
 
 // SQLite
@@ -209,8 +210,9 @@ void Utils::Configuration::openDatabase()
         throw std::runtime_error(message.c_str());
     }
 
+    // sqlite can't store 64 bit integers, so we will use text and atoi later, but it will be slower.
     std::string createQuery =
-        "CREATE TABLE IF NOT EXISTS TASKS(TTIME INTEGER PRIMARY KEY, TNAME TEXT NOT NULL, TDURATION INTEGER NOT NULL);";
+        "CREATE TABLE IF NOT EXISTS TASKS(TTIME TEXT PRIMARY KEY, TNAME TEXT NOT NULL, TDURATION TEXT NOT NULL);";
     sqlite3_stmt* createStmt;
     sqlite3_prepare(m_database, createQuery.c_str(), createQuery.size(), &createStmt, NULL);
     if (SQLITE_DONE != (retValue = sqlite3_step(createStmt))) {
@@ -240,9 +242,9 @@ int Utils::tasksTableCallback(void* p_data, int num_fields, char** p_fields, cha
 {
     auto tableContents = static_cast<Utils::TaskTableEntries*>(p_data);
     try {
-        const auto taskName = p_fields[0];
-        const auto taskTime = atoi(p_fields[1]);
-        const auto taskDuration = atoi(p_fields[2]);
+        const unsigned long long taskTime = std::stoull(p_fields[0]);
+        const auto taskName = p_fields[1];
+        const unsigned long long taskDuration = std::stoull(p_fields[2]);
         tableContents->emplace_back(taskName, taskTime, taskDuration);
     } catch (...) {
         // abort select on failure, don't let exception propogate thru sqlite3 call-stack
@@ -298,7 +300,7 @@ Utils::TaskDurationList Utils::taskNamesAndTimes(Utils::Configuration& config)
     std::map<QString, QTime> taskMap;
     for(auto &task: tasksList(config))
     {
-        const auto taskName = toCamelCase(QString::fromStdString(task.name));
+        const auto taskName = QString::fromStdString(task.name);
         taskMap[taskName] = taskMap[taskName].addMSecs(task.durationMs);
     }
 
@@ -339,7 +341,10 @@ Utils::TaskHistogram Utils::taskHistogram(const QDateTime& from, const QDateTime
         {
             if(task.taskTime < i || task.taskTime > static_cast<unsigned long long>(beginning.toMSecsSinceEpoch())) continue;
 
-            const auto taskName = toCamelCase(QString::fromStdString(task.name));
+            const auto taskName = QString::fromStdString(task.name);
+            if(taskMap.find(taskName) == taskMap.cend())
+                taskMap[taskName] = QTime{0,0,0};
+
             taskMap[taskName] = taskMap[taskName].addMSecs(task.durationMs);
         }
 

@@ -69,6 +69,8 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
 
     initCharts();
 
+    updateChartsContents(QDateTime{}, QDateTime{});
+
     initTables();
 }
 
@@ -297,14 +299,44 @@ void MainWindow::insertItem(const QString& name)
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::updateChartsContents(const QDateTime& from, const QDateTime& to)
+void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
 {
+    auto toSeconds = [](const QTime t){ return QTime{0,0,0}.secsTo(t); };
+    
     auto today = QDateTime::currentDateTime();
     today.setTime(QTime{0,0,0});
-    const auto monday = today.addDays(today.date().dayOfWeek() - 1);
+    const auto monday = today.addDays(1 - today.date().dayOfWeek());
     const auto week = today.date().weekNumber();
     const auto units = Utils::taskHistogram(monday, monday.addDays(7), m_configuration);
 
+    if(units.empty())
+    {
+        m_pieChart->hide();
+        m_histogramChart->hide();
+        m_pieError->show();
+        m_histogramError->show();
+        return;
+    }
+
+    std::map<QString, QTime> times;
+    QTime totalTime = QTime{0,0,0};
+    QTime restTime = QTime{0,0,0};
+    for (const auto &[t, values]: units) {
+        for (const auto& unit : values) {
+            const auto seconds = toSeconds(unit.duration);
+
+            if(times.find(unit.name) == times.cend())
+                times[unit.name] = QTime{0,0,0};
+            
+            times[unit.name] = times[unit.name].addSecs(seconds);
+            totalTime = totalTime.addSecs(seconds);
+            
+            if(unit.name == LONG_BREAK || unit.name == SHORT_BREAK)
+                restTime = restTime.addSecs(seconds);
+        }
+    }
+
+    const auto totalSeconds = toSeconds(totalTime);
     // TODO
 }
 
