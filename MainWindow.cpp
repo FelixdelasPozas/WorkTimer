@@ -22,6 +22,7 @@
 #include <AboutDialog.h>
 #include <ConfigurationDialog.h>
 #include <ProgressWidget.h>
+#include <PieChart.h>
 
 // Qt
 #include <QDateTime>
@@ -34,6 +35,10 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 #include <QChartView>
+#include <QBarSet>
+#include <QStackedBarSeries>
+#include <QBarCategoryAxis>
+#include <QValueAxis>
 
 // SQLite
 extern "C"
@@ -305,8 +310,8 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     
     auto today = QDateTime::currentDateTime();
     today.setTime(QTime{0,0,0});
-    const auto monday = today.addDays(1 - today.date().dayOfWeek());
-    const auto week = today.date().weekNumber();
+    auto monday = today.addDays(1 - today.date().dayOfWeek());
+    //const auto week = today.date().weekNumber();
     const auto units = Utils::taskHistogram(monday, monday.addDays(7), m_configuration);
 
     if(units.empty())
@@ -318,11 +323,12 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
         return;
     }
 
+    // Pie chart
     std::map<QString, QTime> times;
     QTime totalTime = QTime{0,0,0};
-    QTime restTime = QTime{0,0,0};
     for (const auto &[t, values]: units) {
         for (const auto& unit : values) {
+
             const auto seconds = toSeconds(unit.duration);
 
             if(times.find(unit.name) == times.cend())
@@ -330,14 +336,102 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
             
             times[unit.name] = times[unit.name].addSecs(seconds);
             totalTime = totalTime.addSecs(seconds);
-            
-            if(unit.name == LONG_BREAK || unit.name == SHORT_BREAK)
-                restTime = restTime.addSecs(seconds);
         }
     }
 
-    const auto totalSeconds = toSeconds(totalTime);
-    // TODO
+    QPieSeries *restSeries = new QPieSeries();
+    restSeries->setName("Rest");
+    QPieSeries *workSeries = new QPieSeries();
+    workSeries->setName("Work");
+
+    for(const auto &[name, duration]: times)
+    {
+        auto serie = workSeries;
+        if(name == LONG_BREAK || name == SHORT_BREAK)
+            serie = restSeries;
+        
+        serie->append(Utils::toCamelCase(name), toSeconds(duration));
+    }
+
+    QFont font("Arial", 16);
+    font.setBold(true);
+    font.setUnderline(true);
+
+    PieChart* donutBreakdown = new PieChart();
+    donutBreakdown->setAnimationOptions(QChart::AllAnimations);
+    donutBreakdown->setTitle(QString("Total time: %1").arg(totalTime.toString("hh:mm:ss")));
+    donutBreakdown->setTitleFont(font);
+    donutBreakdown->setBackgroundVisible(false);
+    donutBreakdown->legend()->setAlignment(Qt::AlignRight);
+    donutBreakdown->addBreakdownSeries(restSeries, QColor(79, 87, 112));
+    donutBreakdown->addBreakdownSeries(workSeries, QColor(79, 112, 88));
+    
+    auto piechart = m_pieChart->chart();
+    m_pieChart->setChart(donutBreakdown);
+    if(piechart) delete piechart;
+
+    // Histogram
+    std::map<QString, QBarSet *> barsets;
+    for(const auto &entry: times)
+    {
+        const auto color = entry.first == LONG_BREAK ? QColor(79, 87, 112) : (entry.first == SHORT_BREAK ? QColor(79, 87, 112).lighter() : QColor(79, 112, 88));
+        barsets[entry.first] = new QBarSet(Utils::toCamelCase(entry.first));
+        barsets[entry.first]->setColor(color);
+        barsets[entry.first]->setBorderColor(color.darker());
+    }
+
+    auto fill = [](std::pair<QString, QBarSet *> entry){
+        entry.second->insert(entry.second->count(), 0);
+    };
+
+    for (const auto &[t, values]: units) {
+        std::for_each(barsets.begin(), barsets.end(), fill);
+        const auto pos = barsets.begin()->second->count() - 1;
+
+        for (const auto& unit : values) {
+            const auto value = toSeconds(unit.duration) + barsets[unit.name]->at(pos);
+            barsets[unit.name]->insert(pos, value);
+        }
+    }
+
+    auto series = new QStackedBarSeries;
+    for(auto &[name, barset]: barsets)
+        series->append(barset);
+
+    auto histChart = new QChart;
+    histChart->addSeries(series);
+    histChart->setTitle(QString("Histogram for the week %1 to %2").arg(monday.toString("dd/MM")).arg(monday.addDays(7).toString("dd/MM")));
+    histChart->setTitleFont(font);
+    histChart->setBackgroundVisible(false);
+    histChart->setAnimationOptions(QChart::SeriesAnimations);
+    histChart->legend()->setVisible(true);
+    histChart->legend()->setAlignment(Qt::AlignBottom);
+
+    QStringList dates;
+    const unsigned long long ending = monday.addDays(7).toMSecsSinceEpoch();
+    for(unsigned long long i = monday.toMSecsSinceEpoch(); i < ending;)
+    {
+        dates << monday.toString("dd/MM");
+        monday = monday.addDays(1);
+        i = monday.toMSecsSinceEpoch();
+    }
+
+    auto axisX = new QBarCategoryAxis;
+    axisX->append(dates);
+    axisX->setTitleText("Days");
+    histChart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    auto axisY = new QValueAxis;
+    series->attachAxis(axisY);
+    axisY->setLabelFormat("%d");
+    axisY->setTitleText("Hours");
+    histChart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    auto histchart = m_histogramChart->chart();
+    m_histogramChart->setChart(histChart);
+    if(histchart) delete histchart;
 }
 
 //----------------------------------------------------------------------------
