@@ -58,6 +58,8 @@ void PieChart::addBreakdownSeries(QPieSeries* breakdownSeries, QColor color)
     mainSlice->setName(breakdownSeries->name());
     mainSlice->setValue(breakdownSeries->sum());
     m_mainSeries->append(mainSlice);
+    connect(breakdownSeries, SIGNAL(hovered(QPieSlice *, bool)), this, SIGNAL(hovered(QPieSlice *, bool)));
+    connect(mainSlice, SIGNAL(hovered(bool)), this, SLOT(hoveredSlice(bool)));
 
     // customize the slice
     mainSlice->setBrush(color);
@@ -70,7 +72,7 @@ void PieChart::addBreakdownSeries(QPieSeries* breakdownSeries, QColor color)
     breakdownSeries->setPieSize(0.8);
     breakdownSeries->setHoleSize(0.7);
     breakdownSeries->setLabelsVisible();
-    foreach (QPieSlice* slice, breakdownSeries->slices()) {
+    for(auto slice: breakdownSeries->slices()) {
         color = color.lighter(115);
         slice->setBrush(color);
         slice->setLabelFont(font);
@@ -84,6 +86,13 @@ void PieChart::addBreakdownSeries(QPieSeries* breakdownSeries, QColor color)
 
     // update customize legend markers
     updateLegendMarkers();
+}
+
+//----------------------------------------------------------------------------
+void PieChart::hoveredSlice(bool state)
+{
+    auto slice = qobject_cast<QPieSlice*>(sender());
+    emit hovered(slice, state);
 }
 
 //----------------------------------------------------------------------------

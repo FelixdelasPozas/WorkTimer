@@ -33,6 +33,8 @@
 #include <QDialog>
 
 class QChartView;
+class QPieSlice;
+class PieChartTooltip;
 
 /** \class FinishDialog
  * \brief Implements the dialog to show when finising the session. Needed
@@ -188,6 +190,9 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void onTabChanged(int index);
 
+    void onPieHovered(QPieSlice *, bool);
+    void repositionTooltip();
+
   private:
     Utils::Configuration m_configuration; /** application configuration. */
     DesktopWidget m_widget;               /** desktop widget. */
@@ -204,6 +209,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     QLabel* m_histogramError;             /** Histogram chart error widget. */
     QChartView* m_pieChart;               /** pie chart view.  */
     QChartView* m_histogramChart;         /** histogram chart view.         */
+    std::shared_ptr<PieChartTooltip> m_pieTooltip; /** pie chart tooltip widget. */
 };
 
 #endif

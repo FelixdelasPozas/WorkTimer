@@ -326,9 +326,11 @@ Utils::TaskHistogram Utils::taskHistogram(const QDateTime& from, const QDateTime
 
     const std::string stmt = "SELECT * FROM TASKS WHERE TTIME >= " + std::to_string(beginning.toMSecsSinceEpoch()) + " AND TTIME < " + std::to_string(ending.toMSecsSinceEpoch()) + ";";
 
-    const auto tasksQueried = tasksQuery(stmt, config);
-
     TaskHistogram result;
+    const auto tasksQueried = tasksQuery(stmt, config);
+    if(tasksQueried.empty())
+        return result;
+
     TaskDurationList tasks;
     std::map<QString, QTime> taskMap;
     for(unsigned long long i = beginning.toMSecsSinceEpoch(); i < static_cast<unsigned long long>(ending.toMSecsSinceEpoch());)

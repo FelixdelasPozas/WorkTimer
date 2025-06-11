@@ -23,6 +23,7 @@
 #include <ConfigurationDialog.h>
 #include <ProgressWidget.h>
 #include <PieChart.h>
+#include <PieTooltip.h>
 
 // Qt
 #include <QDateTime>
@@ -49,6 +50,7 @@ extern "C"
 const QString TIME_FORMAT = "hh:mm:ss";
 const QString SHORT_BREAK = "Short break";
 const QString LONG_BREAK = "Long break";
+const QString ERROR_STRING = "No data found. Do some work!\n\n\"It does not matter how slowly you\ngo so long as you do not stop.\" - Confucius";
 const int CustomRole = Qt::UserRole+1;
 
 //----------------------------------------------------------------------------
@@ -202,6 +204,9 @@ void MainWindow::initIconAndMenu()
 //----------------------------------------------------------------------------
 void MainWindow::initCharts()
 {
+    QFont font("Arial", 16);
+    font.setBold(true);
+
     // Pie tab
     auto pieTabContents = new QWidget();
     pieTabContents->setStyleSheet("QWidget{background-color: transparent;}");
@@ -214,10 +219,11 @@ void MainWindow::initCharts()
     m_pieChart->setRenderHint(QPainter::Antialiasing);
     m_pieChart->setBackgroundBrush(QBrush{Qt::transparent});
     m_pieChart->setRubberBand(QChartView::NoRubberBand);
-    m_pieChart->setToolTip(tr("Statistics pie chart."));
     m_pieChart->setContentsMargins(0, 0, 0, 0);
 
-    m_pieError = new QLabel(tr("No data found."));
+    m_pieError = new QLabel(ERROR_STRING);
+    m_pieError->setFont(font);
+    m_pieError->setAlignment(Qt::AlignCenter);
     m_pieError->setVisible(false);
 
     pieTabLayout->addWidget(m_pieChart);
@@ -237,10 +243,11 @@ void MainWindow::initCharts()
     m_histogramChart->setRenderHint(QPainter::Antialiasing);
     m_histogramChart->setBackgroundBrush(QBrush{Qt::transparent});
     m_histogramChart->setRubberBand(QChartView::NoRubberBand);
-    m_histogramChart->setToolTip(tr("Statistics pie chart."));
     m_histogramChart->setContentsMargins(0, 0, 0, 0);
 
-    m_histogramError = new QLabel(tr("No data found."));
+    m_histogramError = new QLabel(ERROR_STRING);
+    m_histogramError->setFont(font);
+    m_histogramError->setAlignment(Qt::AlignCenter);
     m_histogramError->setVisible(false);
 
     histogramTabLayout->addWidget(m_histogramChart);
@@ -358,6 +365,7 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     font.setUnderline(true);
 
     PieChart* donutBreakdown = new PieChart();
+    connect(donutBreakdown, SIGNAL(hovered(QPieSlice*, bool)), this, SLOT(onPieHovered(QPieSlice*, bool)));
     donutBreakdown->setAnimationOptions(QChart::AllAnimations);
     donutBreakdown->setTitle(QString("Total time: %1").arg(totalTime.toString("hh:mm:ss")));
     donutBreakdown->setTitleFont(font);
@@ -390,13 +398,19 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
 
         for (const auto& unit : values) {
             const auto value = toSeconds(unit.duration) + barsets[unit.name]->at(pos);
-            barsets[unit.name]->insert(pos, value);
+            barsets[unit.name]->insert(pos, static_cast<qreal>(value) / 3600);
         }
     }
 
+    // order matters
     auto series = new QStackedBarSeries;
     for(auto &[name, barset]: barsets)
+    {
+        if(name == SHORT_BREAK || name == LONG_BREAK) continue;
         series->append(barset);
+    }
+    series->append(barsets[SHORT_BREAK]);
+    series->append(barsets[LONG_BREAK]);
 
     auto histChart = new QChart;
     histChart->addSeries(series);
@@ -424,7 +438,7 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
 
     auto axisY = new QValueAxis;
     series->attachAxis(axisY);
-    axisY->setLabelFormat("%d");
+    axisY->setLabelFormat("%0.2f");
     axisY->setTitleText("Hours");
     histChart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisY);
@@ -459,6 +473,36 @@ void MainWindow::onTabChanged(int index)
 {
     // TODO
     // refresh graphs
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::onPieHovered(QPieSlice *slice, bool state)
+{
+    if(!state)
+    {
+        if (m_pieTooltip) {
+            m_pieTooltip->hide();
+            m_pieTooltip = nullptr;
+        }
+    }
+
+    if(state && slice)
+    {
+        m_pieTooltip = std::make_shared<PieChartTooltip>(slice);
+        m_pieTooltip->move(QCursor::pos() + QPoint(15,15));
+        m_pieTooltip->show();
+        QTimer::singleShot(10, this, SLOT(repositionTooltip()));
+    }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::repositionTooltip()
+{
+    if(m_pieTooltip)
+    {
+        m_pieTooltip->move(QCursor::pos() + QPoint(15,15));
+        QTimer::singleShot(10, this, SLOT(repositionTooltip()));
+    }
 }
 
 //----------------------------------------------------------------------------

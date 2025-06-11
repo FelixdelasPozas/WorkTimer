@@ -514,6 +514,28 @@ void WorkTimer::playNextSound()
 void WorkTimer::timerEvent(QTimerEvent* e)
 {
     killTimer(e->timerId());
+
+    switch (m_playList.first()) {
+        case Sound::CRANK:
+            m_crank.stop();
+            break;
+        case Sound::RING:
+            m_ring.stop();
+            break;
+        case Sound::TICTAC:
+            m_tictac.stop();
+            break;
+        case Sound::CLICK:
+            m_click.stop();
+            break;
+        case Sound::FINISH:
+            m_finish.stop();
+            break;
+        case Sound::NONE:
+        default:
+            break;
+    }
+
     m_playList.removeFirst();
 
     if (!m_playList.empty()) {

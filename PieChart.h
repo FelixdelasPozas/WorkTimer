@@ -70,6 +70,7 @@ class MainSlice : public QPieSlice
  */
 class PieChart : public QChart
 {
+    Q_OBJECT
   public:
     /** \brief PieChart class constructor. 
      * \param[in] parent Raw pointer of the parent of this object.
@@ -87,6 +88,12 @@ class PieChart : public QChart
      * \param[in] color Color assigned to the series. 
      */
     void addBreakdownSeries(QPieSeries* series, QColor color);
+
+  signals:
+      void hovered(QPieSlice *slice, bool state);
+
+  private slots:
+    void hoveredSlice(bool state);      
 
   private:
     /** \brief Helper method to recompute the angles of the internal pie.
