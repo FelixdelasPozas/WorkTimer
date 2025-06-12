@@ -1,5 +1,5 @@
 /*
- File: PieTooltip.h
+ File: ChartsTooltip.h
  Created on: 11/06/2025
  Author: Felix de las Pozas Alvarez
 
@@ -17,33 +17,32 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PIE_TOOLTIP_H_
-#define _PIE_TOOLTIP_H_
+#ifndef _CHARTS_TOOLTIP_H_
+#define _CHARTS_TOOLTIP_H_
 
 // Qt
 #include <QWidget>
 
-class QPieSlice;
-
-/** \class PieChartTooltip
- * \brief Widget that acts as a tooltip for the pie chart.
+/** \class ChartTooltip
+ * \brief Widget that acts as a tooltip for the charts.
  *
  */
-class PieChartTooltip
+class ChartTooltip
 : public QWidget
 {
     Q_OBJECT
   public:
-    /** \brief PieChartTooltip class constructor.
-     * \param[in] data pollution forecast data entry.
+    /** \brief ChartTooltip class constructor.
+     * \param[in] title Tooltip title text.
+     * \param[in] value Seconds of the entry.
      *
      */
-    explicit PieChartTooltip(const QPieSlice* slice);
+    explicit ChartTooltip(const QString title, const qreal value);
 
-    /** \brief PieChartTooltip class virtual destructor.
+    /** \brief ChartTooltip class virtual destructor.
      *
      */
-    virtual ~PieChartTooltip()
+    virtual ~ChartTooltip()
     {};
 
   protected:

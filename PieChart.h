@@ -108,4 +108,4 @@ class PieChart : public QChart
     QPieSeries* m_mainSeries; /** main series. */
 };
 
-#endif // DONUTBREAKDOWNCHART_H
+#endif // PIECHART_H

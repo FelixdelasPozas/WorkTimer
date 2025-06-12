@@ -23,7 +23,7 @@
 #include <ConfigurationDialog.h>
 #include <ProgressWidget.h>
 #include <PieChart.h>
-#include <PieTooltip.h>
+#include <ChartsTooltip.h>
 
 // Qt
 #include <QDateTime>
@@ -76,7 +76,10 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
 
     initCharts();
 
-    updateChartsContents(QDateTime{}, QDateTime{});
+    auto today = QDateTime::currentDateTime();
+    today.setTime(QTime{0,0,0});
+    const auto monday = today.addDays(1 - today.date().dayOfWeek());
+    updateChartsContents(monday, monday.addDays(7));
 
     initTables();
 }
@@ -231,7 +234,7 @@ void MainWindow::initCharts()
 
     tabWidget->addTab(pieTabContents, QIcon(":/WorkTimer/chart.svg"), tr("Pie chart"));
 
-    // Pie tab
+    // Histogram tab
     auto histogramTabContents = new QWidget();
     histogramTabContents->setStyleSheet("QWidget{background-color: transparent;}");
     auto histogramTabLayout = new QVBoxLayout();
@@ -311,15 +314,10 @@ void MainWindow::insertItem(const QString& name)
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
+void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to)
 {
     auto toSeconds = [](const QTime t){ return QTime{0,0,0}.secsTo(t); };
-    
-    auto today = QDateTime::currentDateTime();
-    today.setTime(QTime{0,0,0});
-    auto monday = today.addDays(1 - today.date().dayOfWeek());
-    //const auto week = today.date().weekNumber();
-    const auto units = Utils::taskHistogram(monday, monday.addDays(7), m_configuration);
+    const auto units = Utils::taskHistogram(from, to, m_configuration);
 
     if(units.empty())
     {
@@ -364,10 +362,13 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     font.setBold(true);
     font.setUnderline(true);
 
+    const QString title = from.toString("dd/MM") + " to " + to.toString("dd/MM");
+    const QString tooltip = QString("Total time: %1").arg(totalTime.toString("hh:mm:ss"));
     PieChart* donutBreakdown = new PieChart();
     connect(donutBreakdown, SIGNAL(hovered(QPieSlice*, bool)), this, SLOT(onPieHovered(QPieSlice*, bool)));
     donutBreakdown->setAnimationOptions(QChart::AllAnimations);
-    donutBreakdown->setTitle(QString("Total time: %1").arg(totalTime.toString("hh:mm:ss")));
+    donutBreakdown->setTitle(title);
+    donutBreakdown->setToolTip(tooltip);
     donutBreakdown->setTitleFont(font);
     donutBreakdown->setBackgroundVisible(false);
     donutBreakdown->legend()->setAlignment(Qt::AlignRight);
@@ -378,7 +379,7 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     m_pieChart->setChart(donutBreakdown);
     if(piechart) delete piechart;
 
-    // Histogram
+    // Histogram chart
     std::map<QString, QBarSet *> barsets;
     for(const auto &entry: times)
     {
@@ -386,6 +387,7 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
         barsets[entry.first] = new QBarSet(Utils::toCamelCase(entry.first));
         barsets[entry.first]->setColor(color);
         barsets[entry.first]->setBorderColor(color.darker());
+        connect(barsets[entry.first], SIGNAL(hovered(bool, int)), this, SLOT(onBarHovered(bool, int)));
     }
 
     auto fill = [](std::pair<QString, QBarSet *> entry){
@@ -398,7 +400,7 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
 
         for (const auto& unit : values) {
             const auto value = toSeconds(unit.duration) + barsets[unit.name]->at(pos);
-            barsets[unit.name]->insert(pos, static_cast<qreal>(value) / 3600);
+            barsets[unit.name]->replace(pos, static_cast<qreal>(value) / 3600);
         }
     }
 
@@ -414,7 +416,8 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
 
     auto histChart = new QChart;
     histChart->addSeries(series);
-    histChart->setTitle(QString("Histogram for the week %1 to %2").arg(monday.toString("dd/MM")).arg(monday.addDays(7).toString("dd/MM")));
+    histChart->setTitle(title);
+    histChart->setToolTip(tooltip);
     histChart->setTitleFont(font);
     histChart->setBackgroundVisible(false);
     histChart->setAnimationOptions(QChart::SeriesAnimations);
@@ -422,12 +425,8 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     histChart->legend()->setAlignment(Qt::AlignBottom);
 
     QStringList dates;
-    const unsigned long long ending = monday.addDays(7).toMSecsSinceEpoch();
-    for(unsigned long long i = monday.toMSecsSinceEpoch(); i < ending;)
-    {
-        dates << monday.toString("dd/MM");
-        monday = monday.addDays(1);
-        i = monday.toMSecsSinceEpoch();
+    for (auto dateIt = from; dateIt.toMSecsSinceEpoch() < to.toMSecsSinceEpoch(); dateIt = dateIt.addDays(1)) {
+        dates << dateIt.toString("dd/MM");
     }
 
     auto axisX = new QBarCategoryAxis;
@@ -437,7 +436,6 @@ void MainWindow::updateChartsContents(const QDateTime& , const QDateTime& )
     series->attachAxis(axisX);
 
     auto axisY = new QValueAxis;
-    series->attachAxis(axisY);
     axisY->setLabelFormat("%0.2f");
     axisY->setTitleText("Hours");
     histChart->addAxis(axisY, Qt::AlignLeft);
@@ -480,17 +478,17 @@ void MainWindow::onPieHovered(QPieSlice *slice, bool state)
 {
     if(!state)
     {
-        if (m_pieTooltip) {
-            m_pieTooltip->hide();
-            m_pieTooltip = nullptr;
+        if (m_tooltip) {
+            m_tooltip->hide();
+            m_tooltip = nullptr;
         }
     }
 
     if(state && slice)
     {
-        m_pieTooltip = std::make_shared<PieChartTooltip>(slice);
-        m_pieTooltip->move(QCursor::pos() + QPoint(15,15));
-        m_pieTooltip->show();
+        m_tooltip = std::make_shared<ChartTooltip>(slice->label(), slice->value());
+        m_tooltip->move(QCursor::pos() + QPoint(15,15));
+        m_tooltip->show();
         QTimer::singleShot(10, this, SLOT(repositionTooltip()));
     }
 }
@@ -498,10 +496,32 @@ void MainWindow::onPieHovered(QPieSlice *slice, bool state)
 //----------------------------------------------------------------------------
 void MainWindow::repositionTooltip()
 {
-    if(m_pieTooltip)
+    if(m_tooltip)
     {
-        m_pieTooltip->move(QCursor::pos() + QPoint(15,15));
+        m_tooltip->move(QCursor::pos() + QPoint(15,15));
         QTimer::singleShot(10, this, SLOT(repositionTooltip()));
+    }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::onBarHovered(bool state, int index)
+{
+    auto barset = qobject_cast<QBarSet*>(sender());
+    if(barset)
+    {
+        if (!state && m_tooltip) {
+            m_tooltip->hide();
+            m_tooltip = nullptr;
+        }
+
+        if (state && !m_tooltip) {
+            const auto value = barset->at(index);
+            const auto title = barset->label();
+            m_tooltip = std::make_shared<ChartTooltip>(title, value * 3600);
+            m_tooltip->move(QCursor::pos() + QPoint(15, 15));
+            m_tooltip->show();
+            QTimer::singleShot(10, this, SLOT(repositionTooltip()));
+        }
     }
 }
 

@@ -1,6 +1,5 @@
-#include "PieTooltip.h"
 /*
- File: PieChart.cpp
+ File: ChartsTooltip.cpp
  Created on: 04/06/2025
  Author: Felix de las Pozas Alvarez
 
@@ -27,8 +26,11 @@
 #include <QPieSlice>
 #include <QLabel>
 
+// Project
+#include <ChartsTooltip.h>
+
 //----------------------------------------------------------------------------
-PieChartTooltip::PieChartTooltip(const QPieSlice* slice)
+ChartTooltip::ChartTooltip(const QString title, const qreal value)
 : QWidget(nullptr)
 {
   setWindowFlags(Qt::ToolTip|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint|Qt::WindowTransparentForInput);
@@ -38,25 +40,25 @@ PieChartTooltip::PieChartTooltip(const QPieSlice* slice)
   layout->setContentsMargins(QMargins{5,5,5,5});
   QFont font("Arial", 11);
   font.setBold(true);
-  auto sliceName = slice->label();
-  auto parts = sliceName.split(' ');
+  QString name = title;
+  auto parts = name.split(' ');
   if(parts.size() > 1 && parts.last().contains('%'))
   {
     parts.removeLast();
-    sliceName = parts.join(' ');
+    name = parts.join(' ');
   }
-  auto title = new QLabel(sliceName);
-  title->setAlignment(Qt::AlignCenter);
-  title->setFont(font);
-  layout->addWidget(title);
-  const auto timeText = QString("Duration ") + QTime{0,0,0}.addSecs(slice->value()).toString("hh:mm");
+  auto titleLabel = new QLabel(name);
+  titleLabel->setAlignment(Qt::AlignCenter);
+  titleLabel->setFont(font);
+  layout->addWidget(titleLabel);
+  const auto timeText = QString("Duration ") + QTime{0,0,0}.addSecs(value).toString("hh:mm");
   auto sliceTime = new QLabel(timeText);
   layout->addWidget(sliceTime);
   setLayout(layout);
 }
 
 //----------------------------------------------------------------------------
-void PieChartTooltip::paintEvent(QPaintEvent *event)
+void ChartTooltip::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   painter.drawRect(0, 0, width()-1, height()-1);

@@ -87,7 +87,7 @@ set (CORE_SOURCES
   ProgressWidget.cpp
   ConfigurationDialog.cpp
   PieChart.cpp
-  PieTooltip.cpp
+  ChartsTooltip.cpp
   ${SQLITE_FILES}
   ${TASKBARBUTTON_FILES}
 )

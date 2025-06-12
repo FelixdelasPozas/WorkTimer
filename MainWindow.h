@@ -34,7 +34,7 @@
 
 class QChartView;
 class QPieSlice;
-class PieChartTooltip;
+class ChartTooltip;
 
 /** \class FinishDialog
  * \brief Implements the dialog to show when finising the session. Needed
@@ -192,24 +192,25 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
 
     void onPieHovered(QPieSlice *, bool);
     void repositionTooltip();
+    void onBarHovered(bool, int);
 
   private:
-    Utils::Configuration m_configuration; /** application configuration. */
-    DesktopWidget m_widget;               /** desktop widget. */
-    WorkTimer m_timer;                    /** work timer. */
-    unsigned int m_globalProgress = 0;    /** current global progress in minutes in [0-totalMinutes] */
-    unsigned int m_totalMinutes = 0;      /** total minutes in the session including breaks. */
-    QSystemTrayIcon* m_trayIcon;          /** tray icon. */
-    QAction *m_timerEntry;                /** tray menu entry for play/pause. */
-    QAction *m_stopEntry;                 /** tray menu entry for stop the timer. */
-    QAction *m_taskEntry;                 /** tray menu entry for changing the task name. */
-    bool m_needsExit = false;             /** true to exit application at close(), false otherwise. */
-    QTaskBarButton m_taskBarButton;       /** taskbar progress widget. */
-    QLabel* m_pieError;                   /** Pie chart error widget. */
-    QLabel* m_histogramError;             /** Histogram chart error widget. */
-    QChartView* m_pieChart;               /** pie chart view.  */
-    QChartView* m_histogramChart;         /** histogram chart view.         */
-    std::shared_ptr<PieChartTooltip> m_pieTooltip; /** pie chart tooltip widget. */
+    Utils::Configuration m_configuration;    /** application configuration. */
+    DesktopWidget m_widget;                  /** desktop widget. */
+    WorkTimer m_timer;                       /** work timer. */
+    unsigned int m_globalProgress = 0;       /** current global progress in minutes in [0-totalMinutes] */
+    unsigned int m_totalMinutes = 0;         /** total minutes in the session including breaks. */
+    QSystemTrayIcon* m_trayIcon;             /** tray icon. */
+    QAction* m_timerEntry;                   /** tray menu entry for play/pause. */
+    QAction* m_stopEntry;                    /** tray menu entry for stop the timer. */
+    QAction* m_taskEntry;                    /** tray menu entry for changing the task name. */
+    bool m_needsExit = false;                /** true to exit application at close(), false otherwise. */
+    QTaskBarButton m_taskBarButton;          /** taskbar progress widget. */
+    QLabel* m_pieError;                      /** Pie chart error widget. */
+    QLabel* m_histogramError;                /** Histogram chart error widget. */
+    QChartView* m_pieChart;                  /** pie chart view.  */
+    QChartView* m_histogramChart;            /** histogram chart view.         */
+    std::shared_ptr<ChartTooltip> m_tooltip; /** charts tooltip widget. */
 };
 
 #endif
