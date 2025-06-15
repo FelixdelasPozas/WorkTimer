@@ -66,6 +66,7 @@ class RangeSelectorWidget : public QWidget, private Ui::RangeSelectorWidget
 
   signals:
     void rangeChanged(const QDateTime&, const QDateTime&);
+    void exportData(const QDateTime&, const QDateTime&);
 
   private slots:
     /** \brief Updates the range when a button gets clicked. 
@@ -75,6 +76,10 @@ class RangeSelectorWidget : public QWidget, private Ui::RangeSelectorWidget
     /** \brief Updates the range with a date changes.
      */
     void onDateChanged();
+
+    /** \brief Sends the signal to export data to a CSV file. 
+     */
+    void onExportClicked();
   private:
     /** \brief Helper method to connect signals to slots. 
      */

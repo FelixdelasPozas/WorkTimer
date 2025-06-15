@@ -184,9 +184,11 @@ namespace Utils
 
     /** \brief Returns the contents of the task table in the database. 
      * \param[in] config Application configuration that contains the database handle.
+     * \param[in] from From date.
+     * \param[in] to To Date.
      *
      */
-    TaskTableEntries tasksList(Utils::Configuration &config);
+    TaskTableEntries tasksList(Utils::Configuration &config, const QDateTime &from = QDateTime(), const QDateTime &to = QDateTime());
 
     struct TaskDuration
     {

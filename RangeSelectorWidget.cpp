@@ -125,6 +125,12 @@ void RangeSelectorWidget::onDateChanged()
 }
 
 //----------------------------------------------------------------------------
+void RangeSelectorWidget::onExportClicked()
+{
+    emit exportData(m_fromDateEdit->dateTime(), m_toDateEdit->dateTime());
+}
+
+//----------------------------------------------------------------------------
 void RangeSelectorWidget::connectSignals()
 {
     connect(m_weekButton, SIGNAL(toggled(bool)), this, SLOT(onButtonClicked()));
@@ -133,6 +139,7 @@ void RangeSelectorWidget::connectSignals()
     connect(m_custom, SIGNAL(toggled(bool)), this, SLOT(onButtonClicked()));
     connect(m_fromDateEdit, SIGNAL(dateChanged(QDate)), this, SLOT(onDateChanged()));
     connect(m_toDateEdit, SIGNAL(dateChanged(QDate)), this, SLOT(onDateChanged()));
+    connect(m_export, SIGNAL(clicked()), this, SLOT(onExportClicked()));
 }
 
 //----------------------------------------------------------------------------

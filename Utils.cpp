@@ -277,9 +277,21 @@ Utils::TaskTableEntries Utils::tasksQuery(const std::string &stmt, Utils::Config
 }
 
 //-----------------------------------------------------------------
-Utils::TaskTableEntries Utils::tasksList(Utils::Configuration& config)
+Utils::TaskTableEntries Utils::tasksList(Utils::Configuration &config, const QDateTime &from, const QDateTime &to)
 {
-    const std::string stmt = "SELECT * FROM TASKS;";
+    std::string stmt;
+    if (from == QDateTime() && to == QDateTime()) {
+        stmt = "SELECT * FROM TASKS;";
+    } else {
+        auto beginning = from;
+        beginning.setTime(QTime{0, 0, 0});
+        auto ending = to;
+        ending.setTime(QTime{23, 59, 59});
+
+        stmt = "SELECT * FROM TASKS WHERE TTIME >= " + std::to_string(beginning.toMSecsSinceEpoch()) + " AND TTIME < " +
+               std::to_string(ending.toMSecsSinceEpoch()) + ";";
+    }
+
     return tasksQuery(stmt, config);
 }
 
@@ -322,7 +334,7 @@ Utils::TaskHistogram Utils::taskHistogram(const QDateTime& from, const QDateTime
     auto beginning = from;
     beginning.setTime(QTime{0,0,0});
     auto ending = to;
-    ending.setTime(QTime{0,0,0});
+    ending.setTime(QTime{23,59,59});
 
     const std::string stmt = "SELECT * FROM TASKS WHERE TTIME >= " + std::to_string(beginning.toMSecsSinceEpoch()) + " AND TTIME < " + std::to_string(ending.toMSecsSinceEpoch()) + ";";
 

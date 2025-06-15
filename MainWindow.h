@@ -191,6 +191,12 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void onRangeChanged(const QDateTime &from, const QDateTime &to);
 
+    /** \brief Exports the given data range to a CSV file on disk.
+     * \param[in] from From date. 
+     * \param[in] to To date. 
+     */
+    void exportData(const QDateTime &from, const QDateTime &to);
+
     void onPieHovered(QPieSlice *, bool);
     void repositionTooltip();
     void onBarHovered(bool, int);

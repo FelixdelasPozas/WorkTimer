@@ -24,6 +24,7 @@
 #include <ProgressWidget.h>
 #include <PieChart.h>
 #include <ChartsTooltip.h>
+#include <Quotes.h>
 
 // Qt
 #include <QDateTime>
@@ -40,6 +41,7 @@
 #include <QStackedBarSeries>
 #include <QBarCategoryAxis>
 #include <QValueAxis>
+#include <QFileDialog>
 
 // SQLite
 extern "C"
@@ -113,7 +115,9 @@ void MainWindow::connectSignals()
     connect(&m_timer, SIGNAL(beginLongBreak()), this, SLOT(onUnitStarted()));
 
     connect(m_pieRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
+    connect(m_pieRange, SIGNAL(exportData(const QDateTime&, const QDateTime&)), this, SLOT(exportData(const QDateTime&, const QDateTime&)));
     connect(m_histogramRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
+    connect(m_histogramRange, SIGNAL(exportData(const QDateTime&, const QDateTime&)), this, SLOT(exportData(const QDateTime&, const QDateTime&)));
 }
 
 //----------------------------------------------------------------------------
@@ -398,7 +402,7 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
     histChart->setBackgroundVisible(false);
     histChart->setAnimationOptions(QChart::SeriesAnimations);
     histChart->legend()->setVisible(true);
-    histChart->legend()->setAlignment(Qt::AlignBottom);
+    histChart->legend()->setAlignment(Qt::AlignRight);
 
     QStringList dates;
     for (auto dateIt = from; dateIt.toMSecsSinceEpoch() < to.toMSecsSinceEpoch(); dateIt = dateIt.addDays(1)) {
@@ -408,6 +412,8 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
     auto axisX = new QBarCategoryAxis;
     axisX->append(dates);
     axisX->setTitleText("Days");
+    axisX->setLabelsAngle(-45);
+    axisX->setTruncateLabels(false);
     histChart->addAxis(axisX, Qt::AlignBottom);
     series->attachAxis(axisX);
 
@@ -456,6 +462,76 @@ void MainWindow::onRangeChanged(const QDateTime& from, const QDateTime& to)
         m_histogramRange->setRange(from, to, false);
         updateChartsContents(from, to);
     }
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::exportData(const QDateTime& from, const QDateTime& to)
+{
+    auto tasks = Utils::tasksList(m_configuration, from, to);
+    if(tasks.empty())
+    {
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Information);
+        msgBox.setText("No data to export!");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Ok);
+        msgBox.exec();
+        return;
+    }
+
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Create CSV text file"), QDir::homePath(), tr("Text files (*.txt)"));
+    if(fileName.isEmpty())
+        return;
+
+    QFile file{fileName};
+    if(file.exists())
+    {
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Information);
+        msgBox.setText("File already exists! Do you want to overwrite?");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Yes);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Yes|QMessageBox::StandardButton::No);
+        if(msgBox.exec() != QMessageBox::Yes)
+            return;
+    }
+
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Truncate))
+    {
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Critical);
+        msgBox.setText("Unable to open text file!");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Ok);
+        msgBox.exec();
+        return;
+    }
+
+    const QString header("Date,Task name,Duration\n");
+    file.write(header.toUtf8());
+    for(const auto &task: tasks)
+    {
+        const auto startTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
+        const auto duration = QTime{0,0,0}.addMSecs(task.durationMs);
+        const auto line = QString("%1,\"%2\",%3\n").arg(startTime.toString()).arg(QString::fromStdString(task.name)).arg(duration.toString("hh::mm::ss"));
+        file.write(line.toUtf8());
+    }
+
+    file.flush();
+    file.close();
+
+    const QString details = QString("Exported to: %1").arg(fileName);
+    const QString msg = "Data successfully exported";
+    QMessageBox msgBox{this};
+    msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+    msgBox.setIcon(QMessageBox::Icon::Information);
+    msgBox.setText(msg);
+    msgBox.setDetailedText(details);
+    msgBox.setDefaultButton(QMessageBox::StandardButton::Yes);
+    msgBox.setStandardButtons(QMessageBox::StandardButton::Yes);
+    msgBox.exec();
 }
 
 //----------------------------------------------------------------------------
@@ -809,7 +885,8 @@ void MainWindow::onUnitStarted()
 
     if(m_trayIcon->isVisible() && m_configuration.m_iconMessages)
     {
-        m_trayIcon->showMessage("WorkTimer", iconMessage, QSystemTrayIcon::MessageIcon::Information);
+        auto index = std::rand() % QUOTES.size();
+        m_trayIcon->showMessage(iconMessage, QUOTES[index], QSystemTrayIcon::MessageIcon::NoIcon);
     }
 }
 
