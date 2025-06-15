@@ -103,8 +103,6 @@ void MainWindow::connectSignals()
     connect(actionQuit, SIGNAL(triggered(bool)), this, SLOT(quitApplication()));
     connect(actionTask, SIGNAL(triggered(bool)), this, SLOT(onTaskNameClicked()));
 
-    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
-
     connect(&m_timer, SIGNAL(progress(unsigned int)), this, SLOT(onProgressUpdated(unsigned int)));
     connect(&m_timer, SIGNAL(sessionEnded()), this, SLOT(onSessionEnded()));
     connect(&m_timer, SIGNAL(workUnitEnded()), this, SLOT(onUnitEnded()));
@@ -113,6 +111,9 @@ void MainWindow::connectSignals()
     connect(&m_timer, SIGNAL(beginWorkUnit()), this, SLOT(onUnitStarted()));
     connect(&m_timer, SIGNAL(beginShortBreak()), this, SLOT(onUnitStarted()));
     connect(&m_timer, SIGNAL(beginLongBreak()), this, SLOT(onUnitStarted()));
+
+    connect(m_pieRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
+    connect(m_histogramRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
 }
 
 //----------------------------------------------------------------------------
@@ -210,53 +211,26 @@ void MainWindow::initCharts()
     QFont font("Arial", 16);
     font.setBold(true);
 
-    // Pie tab
-    auto pieTabContents = new QWidget();
-    pieTabContents->setStyleSheet("QWidget{background-color: transparent;}");
-    auto pieTabLayout = new QVBoxLayout();
-    pieTabLayout->setContentsMargins(0,0,0,0);
-    pieTabLayout->setSpacing(0);
-    pieTabContents->setLayout(pieTabLayout);
-
-    m_pieChart = new QChartView;
     m_pieChart->setRenderHint(QPainter::Antialiasing);
     m_pieChart->setBackgroundBrush(QBrush{Qt::transparent});
     m_pieChart->setRubberBand(QChartView::NoRubberBand);
     m_pieChart->setContentsMargins(0, 0, 0, 0);
 
-    m_pieError = new QLabel(ERROR_STRING);
+    m_pieError->setText(ERROR_STRING);
     m_pieError->setFont(font);
     m_pieError->setAlignment(Qt::AlignCenter);
     m_pieError->setVisible(false);
 
-    pieTabLayout->addWidget(m_pieChart);
-    pieTabLayout->addWidget(m_pieError);
-
-    tabWidget->addTab(pieTabContents, QIcon(":/WorkTimer/chart.svg"), tr("Pie chart"));
-
     // Histogram tab
-    auto histogramTabContents = new QWidget();
-    histogramTabContents->setStyleSheet("QWidget{background-color: transparent;}");
-    auto histogramTabLayout = new QVBoxLayout();
-    histogramTabLayout->setContentsMargins(0,0,0,0);
-    histogramTabLayout->setSpacing(0);
-    histogramTabContents->setLayout(histogramTabLayout);
-
-    m_histogramChart = new QChartView;
     m_histogramChart->setRenderHint(QPainter::Antialiasing);
     m_histogramChart->setBackgroundBrush(QBrush{Qt::transparent});
     m_histogramChart->setRubberBand(QChartView::NoRubberBand);
     m_histogramChart->setContentsMargins(0, 0, 0, 0);
 
-    m_histogramError = new QLabel(ERROR_STRING);
+    m_histogramError->setText(ERROR_STRING);
     m_histogramError->setFont(font);
     m_histogramError->setAlignment(Qt::AlignCenter);
     m_histogramError->setVisible(false);
-
-    histogramTabLayout->addWidget(m_histogramChart);
-    histogramTabLayout->addWidget(m_histogramError);
-
-    tabWidget->addTab(histogramTabContents, QIcon(":/WorkTimer/barchart.svg"), tr("Histogram"));    
 }
 
 //----------------------------------------------------------------------------
@@ -327,6 +301,8 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
         m_histogramError->show();
         return;
     }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // Pie chart
     std::map<QString, QTime> times;
@@ -444,6 +420,8 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
     auto histchart = m_histogramChart->chart();
     m_histogramChart->setChart(histChart);
     if(histchart) delete histchart;
+
+    QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -467,10 +445,17 @@ void MainWindow::quitApplication()
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::onTabChanged(int index)
+void MainWindow::onRangeChanged(const QDateTime& from, const QDateTime& to)
 {
-    // TODO
-    // refresh graphs
+    auto rangeWidget = qobject_cast<RangeSelectorWidget *>(sender());
+    if(rangeWidget)
+    {
+        m_pieRange->setButton(rangeWidget->button());
+        m_pieRange->setRange(from, to, false);
+        m_histogramRange->setButton(rangeWidget->button());
+        m_histogramRange->setRange(from, to, false);
+        updateChartsContents(from, to);
+    }
 }
 
 //----------------------------------------------------------------------------

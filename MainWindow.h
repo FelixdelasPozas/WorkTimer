@@ -185,10 +185,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      */
     void quitApplication();
 
-    /** \brief Updates the tab graphics when the tab changes.
-     * \param[in] index Current tab index. 
+    /** \brief Updates the charts ranges when the user selects a range.
+     * \param[in] from From date. 
+     * \param[in] to To date. 
      */
-    void onTabChanged(int index);
+    void onRangeChanged(const QDateTime &from, const QDateTime &to);
 
     void onPieHovered(QPieSlice *, bool);
     void repositionTooltip();
@@ -206,10 +207,6 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     QAction* m_taskEntry;                    /** tray menu entry for changing the task name. */
     bool m_needsExit = false;                /** true to exit application at close(), false otherwise. */
     QTaskBarButton m_taskBarButton;          /** taskbar progress widget. */
-    QLabel* m_pieError;                      /** Pie chart error widget. */
-    QLabel* m_histogramError;                /** Histogram chart error widget. */
-    QChartView* m_pieChart;                  /** pie chart view.  */
-    QChartView* m_histogramChart;            /** histogram chart view.         */
     std::shared_ptr<ChartTooltip> m_tooltip; /** charts tooltip widget. */
 };
 

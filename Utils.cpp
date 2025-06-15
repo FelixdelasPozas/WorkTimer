@@ -270,7 +270,7 @@ Utils::TaskTableEntries Utils::tasksQuery(const std::string &stmt, Utils::Config
     if (ret != SQLITE_OK) {
         std::cerr << "Error in select statement " << stmt << "[" << errmsg << "]\n";
     } else {
-        std::cerr << contents.size() << " records returned.\n";
+        // std::cerr << contents.size() << " records returned.\n";
     }
 
     return contents;

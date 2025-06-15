@@ -255,6 +255,98 @@ font-weight:bold
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="icon">
+        <iconset resource="rsc/resources.qrc">
+         <normaloff>:/WorkTimer/chart.svg</normaloff>:/WorkTimer/chart.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Pie Chart</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="RangeSelectorWidget" name="m_pieRange" native="true"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="histogramLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QChartView" name="m_pieChart" native="true"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="m_pieError">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="icon">
+        <iconset resource="rsc/resources.qrc">
+         <normaloff>:/WorkTimer/barchart.svg</normaloff>:/WorkTimer/barchart.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Histogram</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="RangeSelectorWidget" name="m_histogramRange" native="true"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="pieLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QChartView" name="m_histogramChart" native="true"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="m_histogramError">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item>
@@ -412,6 +504,18 @@ font-weight:bold
    <class>ProgressWidget</class>
    <extends>QProgressBar</extends>
    <header location="global">ProgressWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RangeSelectorWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">RangeSelectorWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QWidget</extends>
+   <header location="global">qchartview.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

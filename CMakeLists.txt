@@ -69,6 +69,7 @@ qt6_wrap_ui(CORE_UI
   AboutDialog.ui
   MainWindow.ui
   ConfigurationDialog.ui
+  RangeSelectorWidget.ui
 )
 	
 set (CORE_SOURCES
@@ -88,6 +89,7 @@ set (CORE_SOURCES
   ConfigurationDialog.cpp
   PieChart.cpp
   ChartsTooltip.cpp
+  RangeSelectorWidget.cpp
   ${SQLITE_FILES}
   ${TASKBARBUTTON_FILES}
 )
