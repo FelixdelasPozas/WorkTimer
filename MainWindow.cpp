@@ -614,6 +614,8 @@ void MainWindow::closeEvent(QCloseEvent* e)
             return;
         }
 
+        // avoid broken sound on exit.
+        m_timer.setUseSounds(false); 
         onStopClicked();
     }
 
@@ -888,8 +890,15 @@ void MainWindow::onUnitStarted()
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
     m_trayIcon->setToolTip(m_timer.statusMessage());
 
+    for(const auto &qo: QUOTES)
+    {
+        if(qo.size() > 150)
+            qDebug() << qo;
+    }
+
     if(m_trayIcon->isVisible() && m_configuration.m_iconMessages)
     {
+        std::srand(std::time(NULL));
         auto index = std::rand() % QUOTES.size();
         m_trayIcon->showMessage(iconMessage, QUOTES[index], QSystemTrayIcon::MessageIcon::NoIcon);
     }

@@ -71,8 +71,14 @@ WorkTimer::~WorkTimer()
 //-----------------------------------------------------------------
 void WorkTimer::setUseSounds(bool value)
 {
-    if (m_status == Status::Stopped) {
-        m_useSounds = value;
+    m_useSounds = value;
+
+    if(!value)
+    {
+        m_playList.clear();
+
+        if(m_continuousTicTac && m_tictac.isPlaying())
+            m_tictac.stop();
     }
 }
 
