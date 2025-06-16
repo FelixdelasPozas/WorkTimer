@@ -51,7 +51,7 @@ ChartTooltip::ChartTooltip(const QString title, const qreal value)
   titleLabel->setAlignment(Qt::AlignCenter);
   titleLabel->setFont(font);
   layout->addWidget(titleLabel);
-  const auto timeText = QString("Duration ") + QTime{0,0,0}.addSecs(value).toString("hh:mm");
+  const auto timeText = QString("Duration ") + QTime{0,0,0}.addSecs(value).toString("hh:mm:ss");
   auto sliceTime = new QLabel(timeText);
   layout->addWidget(sliceTime);
   setLayout(layout);

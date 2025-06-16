@@ -306,6 +306,14 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
         return;
     }
 
+    if(m_pieChart->isHidden())
+    {
+        m_pieChart->show();
+        m_histogramChart->show();
+        m_pieError->hide();
+        m_histogramError->hide();
+    }
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // Pie chart
@@ -338,17 +346,15 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
         serie->append(Utils::toCamelCase(name), toSeconds(duration));
     }
 
-    QFont font("Arial", 16);
+    QFont font("Arial", 14);
     font.setBold(true);
-    font.setUnderline(true);
 
-    const QString title = from.toString("dd/MM") + " to " + to.toString("dd/MM");
-    const QString tooltip = QString("Total time: %1").arg(totalTime.toString("hh:mm:ss"));
+    const QString timeString = QString(" - Total time: %1").arg(totalTime.toString("hh:mm:ss"));
+    const QString title = from.toString("dd/MM") + " to " + to.toString("dd/MM") + timeString;
     PieChart* donutBreakdown = new PieChart();
     connect(donutBreakdown, SIGNAL(hovered(QPieSlice*, bool)), this, SLOT(onPieHovered(QPieSlice*, bool)));
     donutBreakdown->setAnimationOptions(QChart::AllAnimations);
     donutBreakdown->setTitle(title);
-    donutBreakdown->setToolTip(tooltip);
     donutBreakdown->setTitleFont(font);
     donutBreakdown->setBackgroundVisible(false);
     donutBreakdown->legend()->setAlignment(Qt::AlignRight);
@@ -397,7 +403,6 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
     auto histChart = new QChart;
     histChart->addSeries(series);
     histChart->setTitle(title);
-    histChart->setToolTip(tooltip);
     histChart->setTitleFont(font);
     histChart->setBackgroundVisible(false);
     histChart->setAnimationOptions(QChart::SeriesAnimations);

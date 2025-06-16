@@ -31,20 +31,28 @@ RangeSelectorWidget::RangeSelectorWidget(QWidget* parent, Qt::WindowFlags f) :
     connectSignals();
 
     m_weekButton->setChecked(true);
+    m_fromDateEdit->setTimeZone(QTimeZone::LocalTime);
+    m_toDateEdit->setTimeZone(QTimeZone::LocalTime);
 }
 
 //----------------------------------------------------------------------------
 void RangeSelectorWidget::setRange(const QDateTime& from, const QDateTime& to, const bool emitSignal)
 {
+    auto fromDate = from;
+    auto toDate = to;
+    fromDate.setTime(QTime{0,0,0});
+    toDate.setTime(QTime{23,59,59});
+
     m_fromDateEdit->blockSignals(true);
-    m_fromDateEdit->blockSignals(true);
-    m_fromDateEdit->setMaximumDate(to.addDays(-1).date());
-    m_toDateEdit->setMinimumDate(from.addDays(1).date());
-    m_toDateEdit->setMaximumDate(QDateTime::currentDateTime().date());
-    m_fromDateEdit->setDate(from.date());
-    m_toDateEdit->setDate(to.date());
+    m_toDateEdit->blockSignals(true);
+
+    m_fromDateEdit->setDateRange(QDate(), to.addDays(-1).date());
+    m_toDateEdit->setDateRange(from.addDays(1).date(), QDateTime::currentDateTime().date());
+    m_fromDateEdit->setDateTime(fromDate);
+    m_toDateEdit->setDateTime(toDate);
+
     m_fromDateEdit->blockSignals(false);
-    m_fromDateEdit->blockSignals(false);
+    m_toDateEdit->blockSignals(false);
 
     if (emitSignal) {
         emit rangeChanged(m_fromDateEdit->dateTime(), m_toDateEdit->dateTime());
@@ -90,22 +98,24 @@ void RangeSelectorWidget::onButtonClicked()
         currentDate.setTime(QTime{0, 0, 0});
 
         if (button == m_weekButton) {
-            const auto monday = currentDate.addDays(1 - currentDate.date().dayOfWeek());
-            const auto weekEnd = monday.addDays(6);
+            auto monday = currentDate.addDays(1 - currentDate.date().dayOfWeek());
+            monday.setTime(QTime{0,0,0});
+            auto weekEnd = monday.addDays(6);
+            weekEnd.setTime(QTime{23,59,59});
             setRange(monday, weekEnd);
             return;
         }
 
         if (button == m_monthButton) {
             const auto first = QDateTime(QDate{currentDate.date().year(),currentDate.date().month(), 1}, QTime{0,0,0});
-            const auto last = QDateTime(QDate{currentDate.date().year(),currentDate.date().month(), currentDate.date().daysInMonth()}, QTime{0,0,0});
+            const auto last = QDateTime(QDate{currentDate.date().year(),currentDate.date().month(), currentDate.date().daysInMonth()}, QTime{23,59,59});
             setRange(first, last);
             return;
         }
 
         if (button == m_yearButton) {
             const auto first = QDateTime(QDate{currentDate.date().year(),1, 1}, QTime{0,0,0}); 
-            const auto last = QDateTime(QDate{currentDate.date().year(),12, 31}, QTime{0,0,0}); 
+            const auto last = QDateTime(QDate{currentDate.date().year(),12, 31}, QTime{23,59,59}); 
             setRange(first, last);
             return;
         }

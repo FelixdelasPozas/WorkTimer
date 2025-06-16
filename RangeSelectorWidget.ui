@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>659</width>
+    <width>728</width>
     <height>64</height>
    </rect>
   </property>
@@ -115,6 +115,9 @@
      <property name="wrapping">
       <bool>false</bool>
      </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
      <property name="buttonSymbols">
       <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
      </property>
@@ -140,6 +143,12 @@
      </property>
      <property name="wrapping">
       <bool>false</bool>
+     </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
+     <property name="buttonSymbols">
+      <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
      </property>
      <property name="calendarPopup">
       <bool>true</bool>
