@@ -253,6 +253,20 @@ namespace Utils
      *
      */
     QString toCamelCase(const QString& s);
+
+    /** \brief Exports the given entries to a CSV file on disk with the given filename. Returns true on success.
+     * \param[in] filename Filename of file on disk.
+     * \param entries Task entries list. 
+     *
+     */
+    bool exportDataCSV(const QString &filename, const TaskTableEntries &entries);
+
+    /** \brief Exports the given entries to a Excel file on disk with the given filename. Returns true on success.
+     * \param[in] filename Filename of file on disk.
+     * \param entries Task entries list. 
+     *
+     */
+    bool exportDataExcel(const QString &filename, const TaskTableEntries &entries);
 } // namespace Utils
 
 #endif // UTILS_H_

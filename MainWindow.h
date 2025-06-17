@@ -195,11 +195,29 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
      * \param[in] from From date. 
      * \param[in] to To date. 
      */
-    void exportData(const QDateTime &from, const QDateTime &to);
+    void exportDataCSV(const QDateTime &from, const QDateTime &to);
 
-    void onPieHovered(QPieSlice *, bool);
+    /** \brief Exports the given data range to a CSV file on disk.
+     * \param[in] from From date. 
+     * \param[in] to To date. 
+     */
+    void exportDataExcel(const QDateTime &from, const QDateTime &to);
+
+    /** \brief When a pie slice is hovered with the mouse shows a tooltip with the duration and task name.
+     * \param[in] slice Hovered slice.
+     * \param[in] status True if the mouse is over the slice and false otherwise. 
+     */
+    void onPieHovered(QPieSlice *slice, bool status);
+
+    /** \brief Repositions the tooltip over the mouse position. Used for both charts. 
+     */
     void repositionTooltip();
-    void onBarHovered(bool, int);
+
+    /** \brief When a bar is hovered with the mouse shows a tooltip with the duration and task name.
+     * \param[in] status True if the mouse is over the slice and false otherwise. 
+     * \param[in] index Index of the bar series hovered.
+     */
+    void onBarHovered(bool status, int index);
 
   private:
     Utils::Configuration m_configuration;    /** application configuration. */

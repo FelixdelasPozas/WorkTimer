@@ -115,9 +115,11 @@ void MainWindow::connectSignals()
     connect(&m_timer, SIGNAL(beginLongBreak()), this, SLOT(onUnitStarted()));
 
     connect(m_pieRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
-    connect(m_pieRange, SIGNAL(exportData(const QDateTime&, const QDateTime&)), this, SLOT(exportData(const QDateTime&, const QDateTime&)));
+    connect(m_pieRange, SIGNAL(exportDataCSV(const QDateTime&, const QDateTime&)), this, SLOT(exportDataCSV(const QDateTime&, const QDateTime&)));
+    connect(m_pieRange, SIGNAL(exportDataExcel(const QDateTime&, const QDateTime&)), this, SLOT(exportDataExcel(const QDateTime&, const QDateTime&)));
     connect(m_histogramRange, SIGNAL(rangeChanged(const QDateTime&, const QDateTime&)), this, SLOT(onRangeChanged(const QDateTime&, const QDateTime&)));
-    connect(m_histogramRange, SIGNAL(exportData(const QDateTime&, const QDateTime&)), this, SLOT(exportData(const QDateTime&, const QDateTime&)));
+    connect(m_histogramRange, SIGNAL(exportDataCSV(const QDateTime&, const QDateTime&)), this, SLOT(exportDataCSV(const QDateTime&, const QDateTime&)));
+    connect(m_histogramRange, SIGNAL(exportDataExcel(const QDateTime&, const QDateTime&)), this, SLOT(exportDataExcel(const QDateTime&, const QDateTime&)));
 }
 
 //----------------------------------------------------------------------------
@@ -470,7 +472,7 @@ void MainWindow::onRangeChanged(const QDateTime& from, const QDateTime& to)
 }
 
 //----------------------------------------------------------------------------
-void MainWindow::exportData(const QDateTime& from, const QDateTime& to)
+void MainWindow::exportDataCSV(const QDateTime& from, const QDateTime& to)
 {
     auto tasks = Utils::tasksList(m_configuration, from, to);
     if(tasks.empty())
@@ -489,20 +491,7 @@ void MainWindow::exportData(const QDateTime& from, const QDateTime& to)
     if(fileName.isEmpty())
         return;
 
-    QFile file{fileName};
-    if(file.exists())
-    {
-        QMessageBox msgBox{this};
-        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
-        msgBox.setIcon(QMessageBox::Icon::Information);
-        msgBox.setText("File already exists! Do you want to overwrite?");
-        msgBox.setDefaultButton(QMessageBox::StandardButton::Yes);
-        msgBox.setStandardButtons(QMessageBox::StandardButton::Yes|QMessageBox::StandardButton::No);
-        if(msgBox.exec() != QMessageBox::Yes)
-            return;
-    }
-
-    if(!file.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Truncate))
+    if(!Utils::exportDataCSV(fileName, tasks))
     {
         QMessageBox msgBox{this};
         msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
@@ -514,18 +503,49 @@ void MainWindow::exportData(const QDateTime& from, const QDateTime& to)
         return;
     }
 
-    const QString header("Date,Task name,Duration\n");
-    file.write(header.toUtf8());
-    for(const auto &task: tasks)
+    const QString details = QString("Exported to: %1").arg(fileName);
+    const QString msg = "Data successfully exported";
+    QMessageBox msgBox{this};
+    msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+    msgBox.setIcon(QMessageBox::Icon::Information);
+    msgBox.setText(msg);
+    msgBox.setDetailedText(details);
+    msgBox.setDefaultButton(QMessageBox::StandardButton::Yes);
+    msgBox.setStandardButtons(QMessageBox::StandardButton::Yes);
+    msgBox.exec();
+}
+
+//----------------------------------------------------------------------------
+void MainWindow::exportDataExcel(const QDateTime& from, const QDateTime& to)
+{
+    auto tasks = Utils::tasksList(m_configuration, from, to);
+    if(tasks.empty())
     {
-        const auto startTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
-        const auto duration = QTime{0,0,0}.addMSecs(task.durationMs);
-        const auto line = QString("%1,\"%2\",%3\n").arg(startTime.toString()).arg(QString::fromStdString(task.name)).arg(duration.toString("hh::mm::ss"));
-        file.write(line.toUtf8());
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Information);
+        msgBox.setText("No data to export!");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Ok);
+        msgBox.exec();
+        return;
     }
 
-    file.flush();
-    file.close();
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Create Excel file"), QDir::homePath(), tr("Excel files (*.xlsx)"));
+    if(fileName.isEmpty())
+        return;
+
+    if(!Utils::exportDataExcel(fileName, tasks))
+    {
+        QMessageBox msgBox{this};
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setIcon(QMessageBox::Icon::Critical);
+        msgBox.setText("Unable to create Excel file!");
+        msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
+        msgBox.setStandardButtons(QMessageBox::StandardButton::Ok);
+        msgBox.exec();
+        return;
+    }
 
     const QString details = QString("Exported to: %1").arg(fileName);
     const QString msg = "Data successfully exported";
@@ -889,12 +909,6 @@ void MainWindow::onUnitStarted()
     m_taskEntry->setEnabled(taskChangeEnabled);
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
     m_trayIcon->setToolTip(m_timer.statusMessage());
-
-    for(const auto &qo: QUOTES)
-    {
-        if(qo.size() > 150)
-            qDebug() << qo;
-    }
 
     if(m_trayIcon->isVisible() && m_configuration.m_iconMessages)
     {

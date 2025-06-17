@@ -20,6 +20,9 @@
 // Project
 #include <Utils.h>
 
+// libxlsxwriter
+#include <xlsxwriter.h>
+
 // Qt
 #include <QPainter>
 #include <QPainterPath>
@@ -31,6 +34,7 @@
 #include <QSvgRenderer>
 #include <QStandardPaths>
 #include <QFileInfo>
+#include <QFile>
 
 // C++
 #include <iostream>
@@ -304,6 +308,65 @@ QString Utils::toCamelCase(const QString& s)
     }
 
     return parts.join(" ");
+}
+
+//-----------------------------------------------------------------
+bool Utils::exportDataCSV(const QString& filename, const TaskTableEntries& entries) 
+{
+    QFile file{filename};
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Truncate))
+        return false;
+
+    const QString header("Date,Task name,Duration\n");
+    file.write(header.toUtf8());
+    for(const auto &task: entries)
+    {
+        const auto startTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
+        const auto duration = QTime{0,0,0}.addMSecs(task.durationMs);
+        const auto line = QString("%1,\"%2\",%3\n").arg(startTime.toString()).arg(QString::fromStdString(task.name)).arg(duration.toString("hh::mm::ss"));
+        file.write(line.toUtf8());
+    }
+
+    file.flush();
+    file.close();
+
+    return true;
+}
+
+//-----------------------------------------------------------------
+bool Utils::exportDataExcel(const QString& filename, const TaskTableEntries& entries) 
+{
+    lxw_workbook  *workbook  = workbook_new(filename.toStdString().c_str());
+    if(!workbook)
+        return false;
+
+    lxw_worksheet *worksheet = workbook_add_worksheet(workbook, nullptr);
+    if(!worksheet)
+        return false;
+
+    /* Change the columns width for clarity. */
+    worksheet_set_column(worksheet, 0, 0, 40, nullptr);
+    worksheet_set_column(worksheet, 1, 1, 40, nullptr);
+    worksheet_set_column(worksheet, 2, 2, 12, nullptr);
+
+    const auto start = QDateTime::fromMSecsSinceEpoch(entries.front().taskTime);
+    const auto ending = QDateTime::fromMSecsSinceEpoch(entries.back().taskTime);
+    const std::string header = start.toString().toStdString() + " to " + ending.toString().toStdString();
+    worksheet_set_header(worksheet, header.c_str());
+
+    int i = 0; 
+    for(const auto &task: entries)
+    {
+        auto taskTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
+        worksheet_write_string(worksheet, i, 0, taskTime.toString().toStdString().c_str(), nullptr);    
+        worksheet_write_string(worksheet, i, 1, task.name.c_str(), nullptr);    
+        auto taskDuration = QTime{0,0,0}.addMSecs(task.durationMs);
+        worksheet_write_string(worksheet, i++, 2, taskDuration.toString("hh:mm:ss").toStdString().c_str(), nullptr);    
+    }
+
+    workbook_close(workbook);
+
+    return true;
 };
 
 //-----------------------------------------------------------------

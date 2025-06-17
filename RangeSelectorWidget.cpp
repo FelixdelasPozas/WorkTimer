@@ -22,6 +22,11 @@
 
 // Qt
 #include <QDateTime>
+#include <QMenu>
+#include <QAction>
+
+const QString CSV_FILE = "CSV file";
+const QString XLS_FILE = "Excel file";
 
 //----------------------------------------------------------------------------
 RangeSelectorWidget::RangeSelectorWidget(QWidget* parent, Qt::WindowFlags f) :
@@ -33,6 +38,16 @@ RangeSelectorWidget::RangeSelectorWidget(QWidget* parent, Qt::WindowFlags f) :
     m_weekButton->setChecked(true);
     m_fromDateEdit->setTimeZone(QTimeZone::LocalTime);
     m_toDateEdit->setTimeZone(QTimeZone::LocalTime);
+
+    auto menu = new QMenu(m_export);
+    auto csvAction = new QAction(CSV_FILE, menu);
+    auto excelAction = new QAction(XLS_FILE, menu);
+    menu->addAction(csvAction);
+    menu->addAction(excelAction);
+    m_export->setMenu(menu);
+
+    connect(csvAction, SIGNAL(triggered(bool)), this, SLOT(onExportClicked()));
+    connect(excelAction, SIGNAL(triggered(bool)), this, SLOT(onExportClicked()));
 }
 
 //----------------------------------------------------------------------------
@@ -137,7 +152,16 @@ void RangeSelectorWidget::onDateChanged()
 //----------------------------------------------------------------------------
 void RangeSelectorWidget::onExportClicked()
 {
-    emit exportData(m_fromDateEdit->dateTime(), m_toDateEdit->dateTime());
+    auto action = qobject_cast<QAction *>(sender());
+    if(action)
+    {
+        if(action->text().compare(CSV_FILE) == 0)
+        {
+            emit exportDataCSV(m_fromDateEdit->dateTime(), m_toDateEdit->dateTime());
+        }
+        else
+            emit exportDataExcel(m_fromDateEdit->dateTime(), m_toDateEdit->dateTime());
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -149,7 +173,6 @@ void RangeSelectorWidget::connectSignals()
     connect(m_custom, SIGNAL(toggled(bool)), this, SLOT(onButtonClicked()));
     connect(m_fromDateEdit, SIGNAL(dateChanged(QDate)), this, SLOT(onDateChanged()));
     connect(m_toDateEdit, SIGNAL(dateChanged(QDate)), this, SLOT(onDateChanged()));
-    connect(m_export, SIGNAL(clicked()), this, SLOT(onExportClicked()));
 }
 
 //----------------------------------------------------------------------------

@@ -23,6 +23,13 @@ set(CMAKE_AUTOUIC ON)
 # Find the QtWidgets library
 find_package(Qt6 COMPONENTS Widgets Multimedia Svg Charts)
 
+# FetchContent didn't configure it correctly, substitute this paths for your system.
+set(LIBXLSXWRITER_INCLUDE "D:/Desarrollo/Bibliotecas/libxlsxwriter/source/include")
+set(LIBXLSXWRITER_LIB "D:/Desarrollo/Bibliotecas/libxlsxwriter/build/libxlsxwriter.a")
+
+set(ZLIB_LIB "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
+
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Multimedia_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -m64 -Wall -mwindows -Wno-deprecated")
@@ -48,6 +55,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
+  ${LIBXLSXWRITER_INCLUDE}
   )
 
 # External sqlite code
@@ -99,6 +107,8 @@ set(CORE_EXTERNAL_LIBS
   Qt6::Multimedia
   Qt6::Svg
   Qt6::Charts
+  ${LIBXLSXWRITER_LIB}
+  ${ZLIB_LIB}
 )
   
 add_executable(WorkTimer ${CORE_SOURCES})
