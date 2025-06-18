@@ -170,8 +170,14 @@
    </item>
    <item>
     <widget class="QPushButton" name="m_export">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>100</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
-      <string>Export...</string>
+      <string>Export Data...</string>
      </property>
     </widget>
    </item>

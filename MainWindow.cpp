@@ -478,7 +478,7 @@ void MainWindow::exportDataCSV(const QDateTime& from, const QDateTime& to)
     if(tasks.empty())
     {
         QMessageBox msgBox{this};
-        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/csv.svg"));
         msgBox.setIcon(QMessageBox::Icon::Information);
         msgBox.setText("No data to export!");
         msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
@@ -494,7 +494,7 @@ void MainWindow::exportDataCSV(const QDateTime& from, const QDateTime& to)
     if(!Utils::exportDataCSV(fileName, tasks))
     {
         QMessageBox msgBox{this};
-        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/csv.svg"));
         msgBox.setIcon(QMessageBox::Icon::Critical);
         msgBox.setText("Unable to open text file!");
         msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
@@ -506,7 +506,7 @@ void MainWindow::exportDataCSV(const QDateTime& from, const QDateTime& to)
     const QString details = QString("Exported to: %1").arg(fileName);
     const QString msg = "Data successfully exported";
     QMessageBox msgBox{this};
-    msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+    msgBox.setWindowIcon(QIcon(":/WorkTimer/csv.svg"));
     msgBox.setIcon(QMessageBox::Icon::Information);
     msgBox.setText(msg);
     msgBox.setDetailedText(details);
@@ -522,7 +522,7 @@ void MainWindow::exportDataExcel(const QDateTime& from, const QDateTime& to)
     if(tasks.empty())
     {
         QMessageBox msgBox{this};
-        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/excel.svg"));
         msgBox.setIcon(QMessageBox::Icon::Information);
         msgBox.setText("No data to export!");
         msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
@@ -538,7 +538,7 @@ void MainWindow::exportDataExcel(const QDateTime& from, const QDateTime& to)
     if(!Utils::exportDataExcel(fileName, tasks))
     {
         QMessageBox msgBox{this};
-        msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+        msgBox.setWindowIcon(QIcon(":/WorkTimer/excel.svg"));
         msgBox.setIcon(QMessageBox::Icon::Critical);
         msgBox.setText("Unable to create Excel file!");
         msgBox.setDefaultButton(QMessageBox::StandardButton::Ok);
@@ -550,7 +550,7 @@ void MainWindow::exportDataExcel(const QDateTime& from, const QDateTime& to)
     const QString details = QString("Exported to: %1").arg(fileName);
     const QString msg = "Data successfully exported";
     QMessageBox msgBox{this};
-    msgBox.setWindowIcon(QIcon(":/WorkTimer/clock.svg"));
+    msgBox.setWindowIcon(QIcon(":/WorkTimer/excel.svg"));
     msgBox.setIcon(QMessageBox::Icon::Information);
     msgBox.setText(msg);
     msgBox.setDetailedText(details);

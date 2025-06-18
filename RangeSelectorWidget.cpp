@@ -40,8 +40,8 @@ RangeSelectorWidget::RangeSelectorWidget(QWidget* parent, Qt::WindowFlags f) :
     m_toDateEdit->setTimeZone(QTimeZone::LocalTime);
 
     auto menu = new QMenu(m_export);
-    auto csvAction = new QAction(CSV_FILE, menu);
-    auto excelAction = new QAction(XLS_FILE, menu);
+    auto csvAction = new QAction(QIcon(":/WorkTimer/csv.svg"), CSV_FILE, menu);
+    auto excelAction = new QAction(QIcon(":/WorkTimer/excel.svg"), XLS_FILE, menu);
     menu->addAction(csvAction);
     menu->addAction(excelAction);
     m_export->setMenu(menu);
