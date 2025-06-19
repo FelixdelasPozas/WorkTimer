@@ -304,8 +304,9 @@ void WorkTimer::setTaskTitle(QString taskTitle)
 //-----------------------------------------------------------------
 void WorkTimer::updateProgress()
 {
-    auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
-    const unsigned int currentProgress = (std::abs(m_timer.remainingTime() - QTime{0,0,0}.msecsTo(unitTime)) * 100.f) / m_timer.interval();
+    const auto unitTime = m_status == Status::Work ? getWorkDuration() : (m_status == Status::ShortBreak ? getShortBreakDuration() : getLongBreakDuration());
+    const auto unitMs = QTime{0,0,0}.msecsTo(unitTime);
+    const unsigned int currentProgress = (std::abs(m_timer.remainingTime() - unitMs) * 100.f) / unitMs;
 
     if(m_progress != currentProgress)
     {
