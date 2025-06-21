@@ -135,6 +135,7 @@ namespace Utils
         bool m_iconMessages = true;                   /** true to show tray icon messages and false otherwise.  */
         QString m_dataDir;                            /** directory that contains the database. */
         sqlite3* m_database = nullptr;                /** sqlite database. */
+        bool m_exportMs = false;                      /** true to use milliseconds time when exporting data, or dates and duration if false. */
 
       private:
         /** \brief Helper method that returns the QSettings object to use.
@@ -256,17 +257,19 @@ namespace Utils
 
     /** \brief Exports the given entries to a CSV file on disk with the given filename. Returns true on success.
      * \param[in] filename Filename of file on disk.
-     * \param entries Task entries list. 
+     * \param[in] entries Task entries list. 
+     * \param[in] useMilliseconds True to export millisecond values and false to use text for times and dates. 
      *
      */
-    bool exportDataCSV(const QString &filename, const TaskTableEntries &entries);
+    bool exportDataCSV(const QString &filename, const TaskTableEntries &entries, bool useMilliseconds);
 
     /** \brief Exports the given entries to a Excel file on disk with the given filename. Returns true on success.
      * \param[in] filename Filename of file on disk.
      * \param entries Task entries list. 
+     * \param[in] useMilliseconds True to export millisecond values and false to use text for times and dates. 
      *
      */
-    bool exportDataExcel(const QString &filename, const TaskTableEntries &entries);
+    bool exportDataExcel(const QString &filename, const TaskTableEntries &entries, bool useMilliseconds);
 } // namespace Utils
 
 #endif // UTILS_H_

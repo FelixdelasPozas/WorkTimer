@@ -27,6 +27,7 @@
 #include <QUrl>
 #include <QDateTime>
 #include <QtGlobal>
+#include <QStyle>
 
 // SQLite
 extern "C" {
@@ -66,4 +67,10 @@ void AboutDialog::showEvent(QShowEvent *e)
 {
     QDialog::showEvent(e);
     Utils::scaleDialog(this);
+
+    if(parentWidget())
+    {
+        QRect parentRect(parentWidget()->mapToGlobal(QPoint(0, 0)), parentWidget()->size());
+        move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), parentRect).topLeft());
+    }
 }

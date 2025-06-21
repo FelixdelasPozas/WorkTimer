@@ -7,20 +7,8 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>431</height>
+    <height>482</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>440</width>
-    <height>431</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>440</width>
-    <height>431</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Configuration</string>
@@ -63,7 +51,7 @@ QGroupBox::title {
          <string>Enable or disable the use the desktop widget</string>
         </property>
         <property name="text">
-         <string>Use desktop widget</string>
+         <string>Use desktop widget.</string>
         </property>
        </widget>
       </item>
@@ -136,6 +124,96 @@ QGroupBox::title {
          </layout>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0px 5px;
+}</string>
+     </property>
+     <property name="title">
+      <string>Tray icon</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="m_iconMessagesCheckbox">
+        <property name="toolTip">
+         <string>Show a tray message when starting a unit.</string>
+        </property>
+        <property name="text">
+         <string>Show icon messages.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>Sound options</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0px 5px;
+}</string>
+     </property>
+     <property name="title">
+      <string>Sound</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="soundCheckBox">
+        <property name="toolTip">
+         <string>Enable or disable the sounds when a unit starts or ends</string>
+        </property>
+        <property name="text">
+         <string>Use sounds.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="ticTacCheckBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Use a continuous tic-tac sound when in a work unit</string>
+        </property>
+        <property name="text">
+         <string>Use continuous &quot;tic-tac&quot; sound during work units.</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -319,7 +397,7 @@ QGroupBox::title {
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -329,61 +407,8 @@ QGroupBox::title {
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="font">
-      <font>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>Sound options</string>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox {
-    border: 1px solid gray;
-    border-radius: 5px;
-    margin-top: 1ex;
-}
-
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top center; /* position at the top center */
-    padding: 0px 5px;
-}</string>
-     </property>
-     <property name="title">
-      <string>Sound</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QCheckBox" name="soundCheckBox">
-        <property name="toolTip">
-         <string>Enable or disable the sounds when a unit starts or ends</string>
-        </property>
-        <property name="text">
-         <string>Use sounds.</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="ticTacCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Use a continuous tic-tac sound when in a work unit</string>
-        </property>
-        <property name="text">
-         <string>Use continuous &quot;tic-tac&quot; sound during work units.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="groupBox_4">
+   <item row="4" column="0">
+    <widget class="QGroupBox" name="groupBox_5">
      <property name="font">
       <font>
        <bold>true</bold>
@@ -403,16 +428,13 @@ QGroupBox::title {
 }</string>
      </property>
      <property name="title">
-      <string>Tray icon</string>
+      <string>Data export</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="m_iconMessagesCheckbox">
-        <property name="toolTip">
-         <string>Show a tray message when starting a unit.</string>
-        </property>
+       <widget class="QCheckBox" name="m_exportMs">
         <property name="text">
-         <string>Show icon messages</string>
+         <string>Export dates and times in milliseconds.</string>
         </property>
        </widget>
       </item>

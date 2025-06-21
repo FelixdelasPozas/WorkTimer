@@ -63,6 +63,7 @@ const QString SOUND_USE = "Use sounds";
 const QString SOUND_TIC_TAC = "Use continuous tic-tac";
 const QString ICON_MESSAGES = "Show tray icon messages";
 const QString DATA_DIRECTORY = "Data directory";
+const QString EXPORT_UNIXDATE = "Export unix date";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
@@ -125,6 +126,7 @@ void Utils::Configuration::load()
     m_useSound = settings.value(SOUND_USE, true).toBool();
     m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
     m_iconMessages = settings.value(ICON_MESSAGES, true).toBool();
+    m_exportMs = settings.value(EXPORT_UNIXDATE, false).toBool();
 
     m_dataDir = settings.value(DATA_DIRECTORY, "").toString();
 
@@ -166,6 +168,7 @@ void Utils::Configuration::save() const
     settings.setValue(SOUND_USE, m_useSound);
     settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
     settings.setValue(ICON_MESSAGES, m_iconMessages);
+    settings.setValue(EXPORT_UNIXDATE, m_exportMs);
 
     settings.sync();
 }
@@ -311,7 +314,7 @@ QString Utils::toCamelCase(const QString& s)
 }
 
 //-----------------------------------------------------------------
-bool Utils::exportDataCSV(const QString& filename, const TaskTableEntries& entries) 
+bool Utils::exportDataCSV(const QString& filename, const TaskTableEntries& entries, bool useMilliseconds) 
 {
     QFile file{filename};
     if(!file.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Truncate))
@@ -321,10 +324,21 @@ bool Utils::exportDataCSV(const QString& filename, const TaskTableEntries& entri
     file.write(header.toUtf8());
     for(const auto &task: entries)
     {
-        const auto startTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
-        const auto duration = QTime{0,0,0}.addMSecs(task.durationMs);
-        const auto line = QString("%1,\"%2\",%3\n").arg(startTime.toString()).arg(QString::fromStdString(task.name)).arg(duration.toString("hh::mm::ss"));
-        file.write(line.toUtf8());
+        if (!useMilliseconds) {
+            const auto startTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
+            const auto duration = QTime{0, 0, 0}.addMSecs(task.durationMs);
+            const auto line = QString("%1,\"%2\",%3\n")
+                                  .arg(startTime.toString())
+                                  .arg(QString::fromStdString(task.name))
+                                  .arg(duration.toString("hh::mm::ss"));
+            file.write(line.toUtf8());
+        } else {
+            const auto line = QString("%1,\"%2\",%3\n")
+                                  .arg(task.taskTime)
+                                  .arg(QString::fromStdString(task.name))
+                                  .arg(task.durationMs);
+            file.write(line.toUtf8());
+        }
     }
 
     file.flush();
@@ -334,7 +348,7 @@ bool Utils::exportDataCSV(const QString& filename, const TaskTableEntries& entri
 }
 
 //-----------------------------------------------------------------
-bool Utils::exportDataExcel(const QString& filename, const TaskTableEntries& entries) 
+bool Utils::exportDataExcel(const QString& filename, const TaskTableEntries& entries, bool useMilliseconds) 
 {
     lxw_workbook  *workbook  = workbook_new(filename.toStdString().c_str());
     if(!workbook)
@@ -357,11 +371,17 @@ bool Utils::exportDataExcel(const QString& filename, const TaskTableEntries& ent
     int i = 0; 
     for(const auto &task: entries)
     {
-        auto taskTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
-        worksheet_write_string(worksheet, i, 0, taskTime.toString().toStdString().c_str(), nullptr);    
-        worksheet_write_string(worksheet, i, 1, task.name.c_str(), nullptr);    
-        auto taskDuration = QTime{0,0,0}.addMSecs(task.durationMs);
-        worksheet_write_string(worksheet, i++, 2, taskDuration.toString("hh:mm:ss").toStdString().c_str(), nullptr);    
+        if (!useMilliseconds) {
+            auto taskTime = QDateTime::fromMSecsSinceEpoch(task.taskTime);
+            worksheet_write_string(worksheet, i, 0, taskTime.toString().toStdString().c_str(), nullptr);
+            worksheet_write_string(worksheet, i, 1, task.name.c_str(), nullptr);
+            auto taskDuration = QTime{0, 0, 0}.addMSecs(task.durationMs);
+            worksheet_write_string(worksheet, i++, 2, taskDuration.toString("hh:mm:ss").toStdString().c_str(), nullptr);
+        } else {
+            worksheet_write_number(worksheet, i, 0, task.taskTime, nullptr);
+            worksheet_write_string(worksheet, i, 1, task.name.c_str(), nullptr);
+            worksheet_write_number(worksheet, i++, 2, task.durationMs, nullptr);
+        }
     }
 
     workbook_close(workbook);

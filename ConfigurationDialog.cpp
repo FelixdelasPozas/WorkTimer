@@ -26,6 +26,7 @@
 #include <QColorDialog>
 #include <QApplication>
 #include <QScreen>
+#include <QStyle>
 
 const QStringList DEFAULT_POSITIONS = {"Top Left",     "Top Center",  "Top Right",     "Center Left", "Center",
                                        "Center Right", "Bottom Left", "Bottom Center", "Bottom Right"};
@@ -87,6 +88,12 @@ void ConfigurationDialog::showEvent(QShowEvent* e)
 {
     QDialog::showEvent(e);
     Utils::scaleDialog(this);
+
+    if(parentWidget())
+    {
+        QRect parentRect(parentWidget()->mapToGlobal(QPoint(0, 0)), parentWidget()->size());
+        move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), parentRect).topLeft());
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -104,6 +111,7 @@ void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
     config.m_useSound = soundCheckBox->isChecked();
     config.m_continuousTicTac = ticTacCheckBox->isChecked();
     config.m_iconMessages = m_iconMessagesCheckbox->isChecked();
+    config.m_exportMs = m_exportMs->isChecked();
 
     const auto posIdx = positionComboBox->currentIndex();
     config.m_widgetPosition = posIdx == 0 ? QPoint{0, 0} : m_widgetPositions.at(posIdx);
@@ -211,4 +219,5 @@ void ConfigurationDialog::setConfiguration(const Utils::Configuration &config)
     ticTacCheckBox->setChecked(config.m_continuousTicTac);
 
     m_iconMessagesCheckbox->setChecked(config.m_iconMessages);
+    m_exportMs->setChecked(config.m_exportMs);
 }

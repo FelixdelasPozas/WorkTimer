@@ -491,7 +491,7 @@ void MainWindow::exportDataCSV(const QDateTime& from, const QDateTime& to)
     if(fileName.isEmpty())
         return;
 
-    if(!Utils::exportDataCSV(fileName, tasks))
+    if(!Utils::exportDataCSV(fileName, tasks, m_configuration.m_exportMs))
     {
         QMessageBox msgBox{this};
         msgBox.setWindowIcon(QIcon(":/WorkTimer/csv.svg"));
@@ -535,7 +535,7 @@ void MainWindow::exportDataExcel(const QDateTime& from, const QDateTime& to)
     if(fileName.isEmpty())
         return;
 
-    if(!Utils::exportDataExcel(fileName, tasks))
+    if(!Utils::exportDataExcel(fileName, tasks, m_configuration.m_exportMs))
     {
         QMessageBox msgBox{this};
         msgBox.setWindowIcon(QIcon(":/WorkTimer/excel.svg"));
@@ -645,7 +645,7 @@ void MainWindow::closeEvent(QCloseEvent* e)
 //----------------------------------------------------------------------------
 void MainWindow::showAbout()
 {
-    AboutDialog dialog;
+    AboutDialog dialog{this};
     dialog.exec();
 }
 

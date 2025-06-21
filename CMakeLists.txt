@@ -29,7 +29,6 @@ set(LIBXLSXWRITER_LIB "D:/Desarrollo/Bibliotecas/libxlsxwriter/build/libxlsxwrit
 
 set(ZLIB_LIB "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
 
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Multimedia_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -m64 -Wall -mwindows -Wno-deprecated")
