@@ -64,6 +64,7 @@ const QString SOUND_TIC_TAC = "Use continuous tic-tac";
 const QString ICON_MESSAGES = "Show tray icon messages";
 const QString DATA_DIRECTORY = "Data directory";
 const QString EXPORT_UNIXDATE = "Export unix date";
+const QString VOICE_ANNOUNCEMENTS = "Voice announcements";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
@@ -124,6 +125,7 @@ void Utils::Configuration::load()
     m_widgetOpacity = settings.value(DESKTOP_OPACITY, 75).toInt();
     m_widgetPosition = settings.value(DESKTOP_POSITION, QPoint{0, 0}).toPoint();
     m_useSound = settings.value(SOUND_USE, true).toBool();
+    m_useVoice = settings.value(VOICE_ANNOUNCEMENTS, false).toBool();
     m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
     m_iconMessages = settings.value(ICON_MESSAGES, true).toBool();
     m_exportMs = settings.value(EXPORT_UNIXDATE, false).toBool();
@@ -166,6 +168,7 @@ void Utils::Configuration::save() const
     settings.setValue(DESKTOP_OPACITY, m_widgetOpacity);
     settings.setValue(DESKTOP_POSITION, m_widgetPosition);
     settings.setValue(SOUND_USE, m_useSound);
+    settings.setValue(VOICE_ANNOUNCEMENTS, m_useVoice);
     settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
     settings.setValue(ICON_MESSAGES, m_iconMessages);
     settings.setValue(EXPORT_UNIXDATE, m_exportMs);

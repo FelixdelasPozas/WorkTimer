@@ -81,6 +81,7 @@ void ConfigurationDialog::onUseSoundCheckBoxChanged()
 {
     const auto enabled = soundCheckBox->isChecked();
     ticTacCheckBox->setEnabled(enabled);
+    voiceCheckBox->setEnabled(enabled);
 }
 
 //----------------------------------------------------------------------------
@@ -109,6 +110,7 @@ void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
     config.m_useWidget = widgetCheckBox->isChecked();
     config.m_widgetOpacity = opacitySpinBox->value();
     config.m_useSound = soundCheckBox->isChecked();
+    config.m_useVoice = voiceCheckBox->isChecked();
     config.m_continuousTicTac = ticTacCheckBox->isChecked();
     config.m_iconMessages = m_iconMessagesCheckbox->isChecked();
     config.m_exportMs = m_exportMs->isChecked();
@@ -220,4 +222,5 @@ void ConfigurationDialog::setConfiguration(const Utils::Configuration &config)
 
     m_iconMessagesCheckbox->setChecked(config.m_iconMessages);
     m_exportMs->setChecked(config.m_exportMs);
+    voiceCheckBox->setChecked(config.m_useVoice);
 }

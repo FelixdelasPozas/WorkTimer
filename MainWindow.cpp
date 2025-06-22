@@ -140,6 +140,7 @@ void MainWindow::applyConfiguration()
     m_timer.setShortBreakDuration(QTime{0, m_configuration.m_shortBreakTime, 0, 0});
     m_timer.setWorkDuration(QTime{0, m_configuration.m_workUnitTime, 0, 0});
     m_timer.setUseSounds(m_configuration.m_useSound);
+    m_timer.setUseVoiceSounds(m_configuration.m_useVoice);
     m_timer.setContinuousTicTac(m_configuration.m_continuousTicTac);
     m_timer.setSessionWorkUnits(m_configuration.m_unitsPerSession);
 

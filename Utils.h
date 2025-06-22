@@ -131,6 +131,7 @@ namespace Utils
         int m_widgetOpacity = 75;                     /** desktop widget opacity in [10,100]. */
         QPoint m_widgetPosition = QPoint{0, 0};       /** position of the desktop widget. */
         bool m_useSound = true;                       /** true to use sounds and false otherwise. */
+        bool m_useVoice = false;                      /** true to use voice unit announcements and false otherwise. */
         bool m_continuousTicTac = false;              /** true to use the continuous tic-tac sound during work units. */
         bool m_iconMessages = true;                   /** true to show tray icon messages and false otherwise.  */
         QString m_dataDir;                            /** directory that contains the database. */

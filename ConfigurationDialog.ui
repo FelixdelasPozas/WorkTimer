@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>482</height>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -212,6 +212,19 @@ QGroupBox::title {
         </property>
         <property name="text">
          <string>Use continuous &quot;tic-tac&quot; sound during work units.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="voiceCheckBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Announce the unit at the start.</string>
+        </property>
+        <property name="text">
+         <string>Use voice unit announcements.</string>
         </property>
        </widget>
       </item>
@@ -433,6 +446,9 @@ QGroupBox::title {
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="QCheckBox" name="m_exportMs">
+        <property name="toolTip">
+         <string>Export the time and date values using milliseconds values.</string>
+        </property>
         <property name="text">
          <string>Export dates and times in milliseconds.</string>
         </property>

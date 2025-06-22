@@ -120,10 +120,17 @@ class WorkTimer
 		void setWorkUnitsBeforeBreak(unsigned int value);
 
     /** \brief Enables/disables the sounds.
-     * \param[in] enabled boolean value.
+     * \param[in] value boolean value.
      *
      */
-		void setUseSounds(bool enabled);
+		void setUseSounds(bool value);
+
+    /** \brief Enables/disables the voice sounds.
+     * \param[in] value boolean value.
+     *
+     */
+		void setUseVoiceSounds(bool value)
+    { m_useVoice = value; }
 
     /** \brief Returns the duration of a work unit.
      *
@@ -268,14 +275,20 @@ class WorkTimer
       RING,
       CLICK,
       FINISH,
+      SHORTBREAK,
+      LONGBREAK,
+      WORKUNIT,
       NONE
     };
 
-    static const int LENGTH_CRANK = 530;   /** length in milliseconds of the crack sound. */
-    static const int LENGTH_TICTAC = 450;  /** length in milliseconds of the tic-tac sound. */
-    static const int LENGTH_RING = 1300;   /** length in milliseconds of the ring sound. */
-    static const int LENGTH_CLICK = 440;   /** length in milliseconds of the click sound. */
-    static const int LENGTH_FINISH = 3800; /** length in milliseconds of the finish sound. */
+    static const int LENGTH_CRANK = 530;       /** length in milliseconds of the crack sound. */
+    static const int LENGTH_TICTAC = 450;      /** length in milliseconds of the tic-tac sound. */
+    static const int LENGTH_RING = 1300;       /** length in milliseconds of the ring sound. */
+    static const int LENGTH_CLICK = 440;       /** length in milliseconds of the click sound. */
+    static const int LENGTH_FINISH = 3800;     /** length in milliseconds of the finish sound. */
+    static const int LENGTH_SHORT_BREAK = 735; /** length in milliseconds of the short break sound. */
+    static const int LENGTH_LONG_BREAK = 735;  /** length in milliseconds of the long break sound. */
+    static const int LENGTH_WORK_UNIT = 710;   /** length in milliseconds of the work unit sound. */
 
     /** \brief Queues the sound to play.
      * \param[in] sound.
@@ -334,15 +347,19 @@ class WorkTimer
     bool          m_continuousTicTac;    /** Continuous tic-tac sound.                                      */
     unsigned int  m_sessionWorkUnits;    /** Number of work units in a session.                             */
     bool m_useSounds;                    /** Use sounds.                                                    */
+    bool m_useVoice;                     /** Use voice sounds.                                              */
     unsigned int m_remainMS;             /** Elapsed seconds since the last time m_timer started.           */
     unsigned int m_newTaskTime;          /** Time elapsed in the last task.                                 */
     QMap<int, QString> m_completedTasks; /** Task names of completed work units.                            */
 
-    QSoundEffect m_crank;  /** Crank sound      */
-    QSoundEffect m_tictac; /** Tic-tac sound    */
-    QSoundEffect m_ring;   /** Alarm ring sound */
-    QSoundEffect m_click;  /** Click sound      */
-    QSoundEffect m_finish; /** Click sound      */
+    QSoundEffect m_crank;      /** Crank sound             */
+    QSoundEffect m_tictac;     /** Tic-tac sound           */
+    QSoundEffect m_ring;       /** Alarm ring sound        */
+    QSoundEffect m_click;      /** Click sound             */
+    QSoundEffect m_finish;     /** Click sound             */
+    QSoundEffect m_shortBreak; /** Short break voice sound */
+    QSoundEffect m_longBreak;  /** Long break voice sound  */
+    QSoundEffect m_workUnit;   /** Work unit voice sound   */
 
     QList<Sound> m_playList; /** list of sounds to play. */
 };
