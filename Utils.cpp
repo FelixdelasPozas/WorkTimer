@@ -35,6 +35,7 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QFile>
+#include <QStyle>
 
 // C++
 #include <iostream>
@@ -65,6 +66,7 @@ const QString ICON_MESSAGES = "Show tray icon messages";
 const QString DATA_DIRECTORY = "Data directory";
 const QString EXPORT_UNIXDATE = "Export unix date";
 const QString VOICE_ANNOUNCEMENTS = "Voice announcements";
+const QString UNITS_PER_BREAK = "Number of work units before a long break";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
@@ -118,6 +120,7 @@ void Utils::Configuration::load()
     m_shortBreakTime = settings.value(SMALLBREAK_TIME, 5).toInt();
     m_longBreakTime = settings.value(LARGEBREAK_TIME, 15).toInt();
     m_unitsPerSession = settings.value(UNITS_IN_SESSION, 14).toInt();
+    m_workUnitsBeforeBreak = settings.value(UNITS_PER_BREAK, 4).toInt();
     m_workColor = QColor::fromString(settings.value(WORK_COLOR, "#00FF00").toString());
     m_shortBreakColor = QColor::fromString(settings.value(SMALLBREAK_COLOR, "#FFFF00").toString());
     m_longBreakColor = QColor::fromString(settings.value(LARGEBREAK_COLOR, "#0000FF").toString());
@@ -144,10 +147,10 @@ void Utils::Configuration::load()
 int Utils::Configuration::minutesInSession() const
 {
     int minutes = m_unitsPerSession * m_workUnitTime;
-    minutes += (m_unitsPerSession / 4) * (3 * m_shortBreakTime + m_longBreakTime) -
-               (m_unitsPerSession % 4 == 0 ? m_longBreakTime : 0);
-    if ((m_unitsPerSession % 4) != 0) {
-        minutes += ((m_unitsPerSession % 4) - 1) * m_shortBreakTime;
+    minutes += (m_unitsPerSession / m_workUnitsBeforeBreak) * ((m_workUnitsBeforeBreak-1) * m_shortBreakTime + m_longBreakTime) -
+               (m_unitsPerSession % m_workUnitsBeforeBreak == 0 ? m_longBreakTime : 0);
+    if ((m_unitsPerSession % m_workUnitsBeforeBreak) != 0) {
+        minutes += ((m_unitsPerSession % m_workUnitsBeforeBreak) - 1) * m_shortBreakTime;
     }
 
     return minutes;
@@ -161,6 +164,7 @@ void Utils::Configuration::save() const
     settings.setValue(SMALLBREAK_TIME, m_shortBreakTime);
     settings.setValue(LARGEBREAK_TIME, m_longBreakTime);
     settings.setValue(UNITS_IN_SESSION, m_unitsPerSession);
+    settings.setValue(UNITS_PER_BREAK, m_workUnitsBeforeBreak);
     settings.setValue(WORK_COLOR, m_workColor.name());
     settings.setValue(SMALLBREAK_COLOR, m_shortBreakColor.name());
     settings.setValue(LARGEBREAK_COLOR, m_longBreakColor.name());
@@ -473,6 +477,21 @@ void Utils::scaleDialog(QDialog* window)
 
         window->adjustSize();
         window->setFixedSize(window->size() * scale);
+    }
+}
+
+//-----------------------------------------------------------------
+void Utils::centerDialog(QDialog* dialog)
+{
+    if(dialog)
+    {
+        const auto parentW = dialog->parentWidget();
+        if(parentW)
+        {
+            QRect parentRect(parentW->mapToGlobal(QPoint(0, 0)), parentW->size());
+            dialog->move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, dialog->size(), parentRect).topLeft());
+        }
+
     }
 }
 

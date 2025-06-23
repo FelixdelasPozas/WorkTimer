@@ -135,7 +135,7 @@ void MainWindow::applyConfiguration()
     m_widget.setProgress(0);
     m_widget.setOpacity(m_configuration.m_widgetOpacity);
 
-    m_timer.setWorkUnitsBeforeBreak(4);
+    m_timer.setWorkUnitsBeforeLongBreak(m_configuration.m_workUnitsBeforeBreak);
     m_timer.setLongBreakDuration(QTime{0, m_configuration.m_longBreakTime, 0, 0});
     m_timer.setShortBreakDuration(QTime{0, m_configuration.m_shortBreakTime, 0, 0});
     m_timer.setWorkDuration(QTime{0, m_configuration.m_workUnitTime, 0, 0});

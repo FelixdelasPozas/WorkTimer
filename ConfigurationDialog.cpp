@@ -26,7 +26,6 @@
 #include <QColorDialog>
 #include <QApplication>
 #include <QScreen>
-#include <QStyle>
 
 const QStringList DEFAULT_POSITIONS = {"Top Left",     "Top Center",  "Top Right",     "Center Left", "Center",
                                        "Center Right", "Bottom Left", "Bottom Center", "Bottom Right"};
@@ -89,12 +88,7 @@ void ConfigurationDialog::showEvent(QShowEvent* e)
 {
     QDialog::showEvent(e);
     Utils::scaleDialog(this);
-
-    if(parentWidget())
-    {
-        QRect parentRect(parentWidget()->mapToGlobal(QPoint(0, 0)), parentWidget()->size());
-        move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), parentRect).topLeft());
-    }
+    Utils::centerDialog(this);
 }
 
 //----------------------------------------------------------------------------
@@ -114,6 +108,7 @@ void ConfigurationDialog::getConfiguration(Utils::Configuration& config)
     config.m_continuousTicTac = ticTacCheckBox->isChecked();
     config.m_iconMessages = m_iconMessagesCheckbox->isChecked();
     config.m_exportMs = m_exportMs->isChecked();
+    config.m_workUnitsBeforeBreak = unitsBeforeBreak->value();
 
     const auto posIdx = positionComboBox->currentIndex();
     config.m_widgetPosition = posIdx == 0 ? QPoint{0, 0} : m_widgetPositions.at(posIdx);
@@ -199,6 +194,7 @@ void ConfigurationDialog::setConfiguration(const Utils::Configuration &config)
     shortSpinBox->setValue(config.m_shortBreakTime);
     longSpinBox->setValue(config.m_longBreakTime);
     sessionSpinBox->setValue(config.m_unitsPerSession);
+    unitsBeforeBreak->setValue(config.m_workUnitsBeforeBreak);
 
     QPixmap icon(QSize(64, 64));
     icon.fill(config.m_workColor);

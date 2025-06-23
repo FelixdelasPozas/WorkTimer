@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     MainWindow window;
     window.show();
 
-    auto resultValue = app.exec();
+    const auto resultValue = app.exec();
 
     return resultValue;
 }

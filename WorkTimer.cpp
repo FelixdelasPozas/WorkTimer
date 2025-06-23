@@ -404,7 +404,7 @@ void WorkTimer::setSessionWorkUnits(unsigned int value)
 }
 
 //-----------------------------------------------------------------
-void WorkTimer::setWorkUnitsBeforeBreak(unsigned int value)
+void WorkTimer::setWorkUnitsBeforeLongBreak(unsigned int value)
 {
     if (m_status == Status::Stopped) {
         m_numBeforeBreak = value;

@@ -117,7 +117,7 @@ class WorkTimer
      * \param[in] value
      *
      */
-		void setWorkUnitsBeforeBreak(unsigned int value);
+		void setWorkUnitsBeforeLongBreak(unsigned int value);
 
     /** \brief Enables/disables the sounds.
      * \param[in] value boolean value.

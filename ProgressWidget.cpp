@@ -47,7 +47,7 @@ void ProgressWidget::paintEvent(QPaintEvent*)
     QPainter painter(this);
     for (int i = 1; i <= parts; ++i) {
         if (i % 2 == 0) {
-            if (i % 8 == 0) {
+            if (i % (2 * m_config.m_workUnitsBeforeBreak) == 0) {
                 xMax += minuteWidth * m_config.m_longBreakTime;
                 paintColor = m_config.m_longBreakColor;
             } else {

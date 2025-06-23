@@ -124,6 +124,7 @@ namespace Utils
         int m_shortBreakTime = 5;                     /** minutes of a short break. */
         int m_longBreakTime = 15;                     /** minutes of a long break. */
         int m_unitsPerSession = 14;                   /** number of work units per session. */
+        int m_workUnitsBeforeBreak = 4;               /** number of work units before a long break. */
         QColor m_workColor = QColor(0, 1., 0);        /** color of work unit. */
         QColor m_shortBreakColor = QColor(1., 1., 0); /** color of short breaks. */
         QColor m_longBreakColor = QColor(0, 0, 1.);   /** color of long breaks. */
@@ -154,6 +155,12 @@ namespace Utils
      *
      */
     void scaleDialog(QDialog* dialog);
+
+    /** \brief Helper method to center the dialog on the parent or the screen.
+     * \param[in] dialog Dialog to center.
+     *
+     */
+    void centerDialog(QDialog* dialog);
 
     /** \brief Returns the given svg as a pixmap in the given color. 
      * \param[in] name SVG name in resources.
