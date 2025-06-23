@@ -138,6 +138,8 @@ namespace Utils
         QString m_dataDir;                            /** directory that contains the database. */
         sqlite3* m_database = nullptr;                /** sqlite database. */
         bool m_exportMs = false;                      /** true to use milliseconds time when exporting data, or dates and duration if false. */
+        QByteArray m_geometry;                        /** application geometry. */
+        QByteArray m_state;                           /** application state. */
 
       private:
         /** \brief Helper method that returns the QSettings object to use.

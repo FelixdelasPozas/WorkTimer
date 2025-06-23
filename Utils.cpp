@@ -67,6 +67,8 @@ const QString DATA_DIRECTORY = "Data directory";
 const QString EXPORT_UNIXDATE = "Export unix date";
 const QString VOICE_ANNOUNCEMENTS = "Voice announcements";
 const QString UNITS_PER_BREAK = "Number of work units before a long break";
+const QString GEOMETRY = "Application geometry";
+const QString STATE = "Application state";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
@@ -132,6 +134,8 @@ void Utils::Configuration::load()
     m_continuousTicTac = settings.value(SOUND_TIC_TAC, false).toBool();
     m_iconMessages = settings.value(ICON_MESSAGES, true).toBool();
     m_exportMs = settings.value(EXPORT_UNIXDATE, false).toBool();
+    m_geometry = settings.value(GEOMETRY, QByteArray()).toByteArray();
+    m_state = settings.value(STATE, QByteArray()).toByteArray();
 
     m_dataDir = settings.value(DATA_DIRECTORY, "").toString();
 
@@ -176,6 +180,8 @@ void Utils::Configuration::save() const
     settings.setValue(SOUND_TIC_TAC, m_continuousTicTac);
     settings.setValue(ICON_MESSAGES, m_iconMessages);
     settings.setValue(EXPORT_UNIXDATE, m_exportMs);
+    settings.setValue(GEOMETRY, m_geometry);
+    settings.setValue(STATE, m_state);
 
     settings.sync();
 }

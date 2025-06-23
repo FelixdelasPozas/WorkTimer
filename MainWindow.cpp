@@ -89,7 +89,11 @@ MainWindow::MainWindow(QWidget* p, Qt::WindowFlags f) :
 //----------------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    m_configuration.m_geometry = saveGeometry();
+    m_configuration.m_state = saveState();
+
     m_configuration.save();
+    
     if(m_configuration.m_database)
         sqlite3_shutdown();
 }
@@ -145,6 +149,12 @@ void MainWindow::applyConfiguration()
     m_timer.setSessionWorkUnits(m_configuration.m_unitsPerSession);
 
     m_totalMinutes = m_configuration.minutesInSession();
+
+    if(m_configuration.m_geometry != QByteArray())
+        restoreGeometry(m_configuration.m_geometry);
+
+    if(m_configuration.m_state != QByteArray())
+        restoreState(m_configuration.m_state);
 }
 
 //----------------------------------------------------------------------------
@@ -915,7 +925,7 @@ void MainWindow::onUnitStarted()
     {
         std::srand(std::time(NULL));
         auto index = std::rand() % QUOTES.size();
-        m_trayIcon->showMessage(iconMessage, QUOTES[index], QSystemTrayIcon::MessageIcon::NoIcon);
+        m_trayIcon->showMessage(iconMessage, QUOTES[index], QIcon(":/WorkTimer/clock.svg"));
     }
 }
 
