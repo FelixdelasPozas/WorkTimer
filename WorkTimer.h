@@ -30,6 +30,7 @@
 #include <QThread>
 #include <QMap>
 #include <QSoundEffect>
+#include <QMediaDevices>
 
 class QSoundEffect;
 class QTemporaryFile;
@@ -265,6 +266,11 @@ class WorkTimer
      */
 	  void endLongBreak();
 
+    /** \brief Updates the output device of the sounds if the default changes. 
+     *
+     */
+    void onAudioDeviceChanged();
+
 	private:
     /** \brief Types of sounds
      */
@@ -360,6 +366,8 @@ class WorkTimer
     QSoundEffect m_shortBreak; /** Short break voice sound */
     QSoundEffect m_longBreak;  /** Long break voice sound  */
     QSoundEffect m_workUnit;   /** Work unit voice sound   */
+
+    QMediaDevices m_audioDevices; /** system media devices handler. */
 
     QList<Sound> m_playList; /** list of sounds to play. */
 };

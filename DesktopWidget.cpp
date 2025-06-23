@@ -192,7 +192,9 @@ QIcon DesktopWidget::asIcon(unsigned int minutes)
     auto font = QFont("Arial", 65);
     font.setBold(true);
     painter.setFont(font);
-    painter.setPen(m_color.darker());
+    painter.setPen(Qt::white);
+    // need to invert whatever color the user choosed to see the minutes.
+    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     painter.drawText(image.rect(), Qt::AlignCenter, QString::number(minutes));
     painter.end();
 

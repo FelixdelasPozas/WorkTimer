@@ -27,6 +27,9 @@
 #include <QTemporaryFile>
 #include <QTimerEvent>
 #include <QWidget>
+#include <QAudioOutput>
+#include <QMediaDevices>
+#include <QAudioDevice>
 
 //-----------------------------------------------------------------
 WorkTimer::WorkTimer() :
@@ -45,7 +48,8 @@ WorkTimer::WorkTimer() :
     m_sessionWorkUnits{12},
     m_useSounds{true},
     m_remainMS{0},
-    m_newTaskTime{0}
+    m_newTaskTime{0},
+    m_audioDevices{this}
 {
     m_timer.setSingleShot(true);
     m_progressTimer.setSingleShot(false);
@@ -60,7 +64,9 @@ WorkTimer::WorkTimer() :
     m_finish.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/finish.wav"));
     m_shortBreak.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/ShortBreak.wav"));
     m_longBreak.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/LongBreak.wav"));
-    m_workUnit.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/WorkUnit.wav"));            
+    m_workUnit.setSource(QUrl::fromLocalFile(":/WorkTimer/sounds/WorkUnit.wav"));    
+
+    connect(&m_audioDevices, SIGNAL(audioOutputsChanged()), this, SLOT(onAudioDeviceChanged()));
 }
 
 //-----------------------------------------------------------------
@@ -379,6 +385,21 @@ void WorkTimer::endLongBreak()
 
     emit longBreakEnded();
     startWorkUnit();
+}
+
+//-----------------------------------------------------------------
+void WorkTimer::onAudioDeviceChanged()
+{
+    const auto defaultOutput = QMediaDevices::defaultAudioOutput();
+
+    m_tictac.setAudioDevice(defaultOutput);
+    m_crank.setAudioDevice(defaultOutput);
+    m_ring.setAudioDevice(defaultOutput);
+    m_click.setAudioDevice(defaultOutput);
+    m_finish.setAudioDevice(defaultOutput);
+    m_shortBreak.setAudioDevice(defaultOutput);
+    m_longBreak.setAudioDevice(defaultOutput);
+    m_workUnit.setAudioDevice(defaultOutput);
 }
 
 //-----------------------------------------------------------------
