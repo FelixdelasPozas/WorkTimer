@@ -121,7 +121,7 @@ void PieChart::updateLegendMarkers()
                 // modify markers from breakdown series
                 pieMarker->setLabel(QString("%1 %2%")
                                         .arg(pieMarker->slice()->label())
-                                        .arg(pieMarker->slice()->percentage() * 100, 0, 'f', 2));
+                                        .arg((pieMarker->slice()->angleSpan() / 360) * 100, 0, 'f', 2));
                 pieMarker->setFont(QFont("Arial", 8));
             }
         }

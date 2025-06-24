@@ -54,7 +54,7 @@ Supported versions are from Windows 8 onwards. Neither the application or the in
 
 | Language                     |files          |blank      |comment       |code      |
 |:-----------------------------|--------------:|----------:|-------------:|---------:|
-| C++                          |  12           |  530      |   397        | 2524     |
+| C++                          |  12           |  531      |   398        | 2526     |
 | C/C++ Header                 |  12           |  296      |   810        |  618     |
 | CMake                        |   1           |   20      |    10        |   84     |
-| **Total**                    | **25**        | **846**   | **1217**     | **3226** |
+| **Total**                    | **25**        | **847**   | **1218**     | **3228** |

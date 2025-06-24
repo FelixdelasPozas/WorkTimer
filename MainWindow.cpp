@@ -336,11 +336,15 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
         for (const auto& unit : values) {
 
             const auto seconds = toSeconds(unit.duration);
-
-            if(times.find(unit.name) == times.cend())
-                times[unit.name] = QTime{0,0,0};
+            auto name = unit.name;
             
-            times[unit.name] = times[unit.name].addSecs(seconds);
+            // this is "mine" thing, I don't know why I use to end task names with a point
+            if(name.endsWith('.')) name.removeLast();
+
+            if(times.find(name) == times.cend())
+                times[name] = QTime{0,0,0};
+            
+            times[name] = times[name].addSecs(seconds);
             totalTime = totalTime.addSecs(seconds);
         }
     }
