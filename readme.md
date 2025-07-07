@@ -13,7 +13,7 @@ WorkTimer
 WorkTimer is a simple application for controlling procrastination and getting statistics on the time spent at work. It uses a system similar to the popular "Pomodoro" technique to intersperse breaks between work tasks.
 
 ## Options
-The timer can be configured for the work, short and long breaks. By default it uses 25 minutes for a work unit and 5 and 15 minutes for the short and long breaks. 
+The timer can be configured for the work, short and long breaks. By default it uses 25 minutes for a work unit and 5 and 15 minutes for the short and long breaks. Once a session has started those options cannot be configured until the session has finished or stopped.
 If miminized the application can be configured to show a tray message informing the start of a new unit or break, with a motivational quote.
 Sounds can be enabled and disabled. When using it with headphones I find it usefull to enabled the "voice unit announcements" when working away from the computer. 
 A desktop widget can be configured to show the current task name and progress in the desktop. If minimized the same progress is show in the tray icon, but showing just the remaining minutes in the unit.
@@ -38,11 +38,30 @@ Supported versions are from Windows 8 onwards. Neither the application or the in
 
 # Screenshots
 
-![icon]()
-![icon_menu]()
-![config]()
+The main window with the list of completed units. There are two tables, one with the work/procastination times and other (the lower one) with the task names and completed time and units. 
+
+![main]()
+
+When you have completed tasks, you can get statistics in the pie and histogram charts tabs. Putting the mouse in each of the pie slice or histogram bar it will give you the total time invested in that task.
+
 ![pie_graph]()
 ![hist_graph]()
+
+When you minimize the application the tray icon will show the clock (if the session has not started) or the remaining time of the task or break.
+
+![icon]()
+
+The tray icon and context menu. 
+
+![icon_menu]()
+
+The configuration dialog lets you change the duration of each of the units and assign its colors. Also the configuration options for a session can be modified here (work units before a long break, number of units in a session). 
+
+![config]()
+
+Optionally a desktop widget can be shown for the duration of the session with the name of the unit and its current progression.
+
+![widget]()
 
 # Repository information
 
@@ -54,7 +73,7 @@ Supported versions are from Windows 8 onwards. Neither the application or the in
 
 | Language                     |files          |blank      |comment       |code      |
 |:-----------------------------|--------------:|----------:|-------------:|---------:|
-| C++                          |  12           |  531      |   398        | 2526     |
-| C/C++ Header                 |  12           |  296      |   810        |  618     |
+| C++                          |  12           |  551      |   400        | 2619     |
+| C/C++ Header                 |  12           |  302      |   828        |  624     |
 | CMake                        |   1           |   20      |    10        |   84     |
-| **Total**                    | **25**        | **847**   | **1218**     | **3228** |
+| **Total**                    | **25**        | **873**   | **1238**     | **3327** |

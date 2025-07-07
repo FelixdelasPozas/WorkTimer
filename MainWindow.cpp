@@ -331,9 +331,13 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
 
     // Pie chart
     std::map<QString, QTime> times;
-    QTime totalTime = QTime{0,0,0};
+    int hours = 0, minutes = 0, secs = 0;
     for (const auto &[t, values]: units) {
         for (const auto& unit : values) {
+
+            hours += unit.duration.hour();
+            minutes += unit.duration.minute();
+            secs += unit.duration.second();
 
             const auto seconds = toSeconds(unit.duration);
             auto name = unit.name;
@@ -345,9 +349,14 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
                 times[name] = QTime{0,0,0};
             
             times[name] = times[name].addSecs(seconds);
-            totalTime = totalTime.addSecs(seconds);
         }
     }
+
+    hours += minutes / 60;
+    minutes = minutes % 60;
+    minutes += secs / 60;
+    secs = secs % 60;
+    const auto totalTime = QString("%1:%2:%3").arg(hours).arg(12).arg(33);
 
     QPieSeries *restSeries = new QPieSeries();
     restSeries->setName("Rest");
@@ -366,7 +375,7 @@ void MainWindow::updateChartsContents(const QDateTime &from, const QDateTime &to
     QFont font("Arial", 14);
     font.setBold(true);
 
-    const QString timeString = QString(" - Total time: %1").arg(totalTime.toString("hh:mm:ss"));
+    const QString timeString = QString(" - Total time: %1").arg(totalTime);
     const QString title = from.toString("dd/MM") + " to " + to.toString("dd/MM") + timeString;
     PieChart* donutBreakdown = new PieChart();
     connect(donutBreakdown, SIGNAL(hovered(QPieSlice*, bool)), this, SLOT(onPieHovered(QPieSlice*, bool)));
@@ -782,6 +791,7 @@ void MainWindow::onTaskNameClicked()
     }
 
     auto taskName = dialog.textValue();
+    taskName = taskName.simplified();
     if (taskName.isEmpty()) {
         return;
     }
@@ -794,6 +804,7 @@ void MainWindow::onTaskNameClicked()
         insertItem(taskName);
         m_timer.setTaskTitle(taskName);
         m_widget.setTitle(taskName);
+        m_trayIcon->setToolTip(m_timer.statusMessage() + "\nTask: " + m_timer.getTaskTitle());        
         insertedNew = true;
     }
 
@@ -923,7 +934,7 @@ void MainWindow::onUnitStarted()
     actionTask->setEnabled(taskChangeEnabled);
     m_taskEntry->setEnabled(taskChangeEnabled);
     m_trayIcon->setIcon(m_widget.asIcon(minutes));
-    m_trayIcon->setToolTip(m_timer.statusMessage());
+    m_trayIcon->setToolTip(m_timer.statusMessage() + "\nTask: " + m_timer.getTaskTitle());
 
     if(m_trayIcon->isVisible() && m_configuration.m_iconMessages)
     {
