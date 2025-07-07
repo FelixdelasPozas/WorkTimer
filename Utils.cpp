@@ -72,10 +72,6 @@ const QString STATE = "Application state";
 
 constexpr int DEFAULT_LOGICAL_DPI = 96;
 
-// - Estadísticas y QtCharts, implementar.
-// - Exportar base de datos a excel.
-//
-
 //-----------------------------------------------------------------
 Utils::ClickableHoverLabel::ClickableHoverLabel(QWidget* parent, Qt::WindowFlags f) :
     QLabel(parent, f)
@@ -400,6 +396,92 @@ bool Utils::exportDataExcel(const QString& filename, const TaskTableEntries& ent
     workbook_close(workbook);
 
     return true;
+}
+
+//-----------------------------------------------------------------
+void Utils::clearDatabase(sqlite3* db, const std::string& tableName)
+{
+    if(!db) return;
+
+    const std::string statement1 = "DELETE FROM " + tableName + ";";
+    const std::string statement2 = "VACUUM";
+    char* errmsg;
+
+    for(const auto &stmt: {statement1, statement2})
+    {
+        int ret = sqlite3_exec(db, stmt.c_str(), nullptr, nullptr, &errmsg);
+        if (ret != SQLITE_OK) {
+            std::cerr << "Error clearing table " << tableName << "[" << errmsg << "]\n";
+            std::cerr << "Statement: " << stmt << std::endl;
+            return;
+        } 
+    }
+}
+
+//-----------------------------------------------------------------
+int countCallback(void* count, int argc, char** argv, char** p_col_names)
+{
+    int *c = reinterpret_cast<int *>(count);
+    *c = atoi(argv[0]);
+    return 0;
+}
+
+//-----------------------------------------------------------------
+int Utils::numberOfEntries(sqlite3* db, const std::string& tableName)
+{
+    if(!db) return -1;
+
+    const std::string stmt = "SELECT COUNT(*) FROM " + tableName + ";";
+    char *errmsg = nullptr;
+    int count = 0;
+
+    int ret = sqlite3_exec(db, stmt.c_str(), countCallback, &count, &errmsg);
+    if (ret != SQLITE_OK) {
+            std::cerr << "Error counting table entries " << tableName << "[" << errmsg << "]\n";
+            std::cerr << "Statement: " << stmt << std::endl;
+    } 
+
+    return count;
+}
+
+//-----------------------------------------------------------------
+Utils::TaskTableEntries Utils::generateTestData(const QDateTime& from, const QDateTime& to, const QStringList& tasks)
+{
+    TaskTableEntries tasksList;
+    srand(time(nullptr));
+
+    const Configuration config;
+
+    auto fromDate = from;
+    while(fromDate < to.addDays(1))
+    {
+        fromDate.setTime(QTime(9, rand() % 50, 0));
+        int i = 0;
+        for(; i < config.m_unitsPerSession - rand() % 3; ++i)
+        {
+            const auto task = tasks.at(rand() % tasks.size());
+            tasksList.emplace_back(task.toStdString(), fromDate.toMSecsSinceEpoch(), config.m_workUnitTime * 60 * 1000);
+            fromDate = QDateTime::fromMSecsSinceEpoch(fromDate.toMSecsSinceEpoch() + (config.m_workUnitTime * 60 * 1000));
+        }
+
+        const auto breaks = (i-1) / 2;
+        const auto longBreaks = breaks / config.m_workUnitsBeforeBreak;
+        for(i = 0; i <= longBreaks; ++i)
+        {
+            tasksList.emplace_back("Long break", fromDate.toMSecsSinceEpoch(), config.m_longBreakTime * 60 * 1000);
+            fromDate = QDateTime::fromMSecsSinceEpoch(fromDate.toMSecsSinceEpoch() + (config.m_longBreakTime * 60 * 1000));
+        }
+        const auto shortBreaks = breaks - longBreaks;
+        for(i = 0; i <= shortBreaks; ++i)
+        {
+            tasksList.emplace_back("Short break", fromDate.toMSecsSinceEpoch(), config.m_shortBreakTime * 60 * 1000);
+            fromDate = QDateTime::fromMSecsSinceEpoch(fromDate.toMSecsSinceEpoch() + (config.m_shortBreakTime * 60 * 1000));
+        }
+
+        fromDate = fromDate.addDays(1);
+    }
+
+    return tasksList;
 };
 
 //-----------------------------------------------------------------

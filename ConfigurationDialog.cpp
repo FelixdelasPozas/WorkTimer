@@ -26,6 +26,7 @@
 #include <QColorDialog>
 #include <QApplication>
 #include <QScreen>
+#include <QMessageBox>
 
 const QStringList DEFAULT_POSITIONS = {"Top Left",     "Top Center",  "Top Right",     "Center Left", "Center",
                                        "Center Right", "Bottom Left", "Bottom Center", "Bottom Right"};
@@ -52,6 +53,9 @@ ConfigurationDialog::ConfigurationDialog(const Utils::Configuration& config, QWi
     connectSignals();
     onWidgetCheckBoxChanged();
     onUseSoundCheckBoxChanged();
+
+    m_database = config.m_database;
+    m_clearDatabase->setEnabled(m_database != nullptr && Utils::numberOfEntries(m_database, "TASKS") > 0);
 }
 
 //----------------------------------------------------------------------------
@@ -81,6 +85,23 @@ void ConfigurationDialog::onUseSoundCheckBoxChanged()
     const auto enabled = soundCheckBox->isChecked();
     ticTacCheckBox->setEnabled(enabled);
     voiceCheckBox->setEnabled(enabled);
+}
+
+//----------------------------------------------------------------------------
+void ConfigurationDialog::onDatabaseClearPressed()
+{
+    QMessageBox msgBox{this};
+    msgBox.setWindowIcon(QIcon(":/WorkTimer/configuration.svg"));
+    msgBox.setIcon(QMessageBox::Icon::Warning);
+    msgBox.setText("Do you really what to clear all the data in the database?\nThis action cannot be undone!");
+    msgBox.setDefaultButton(QMessageBox::StandardButton::No);
+    msgBox.setStandardButtons(QMessageBox::StandardButton::No | QMessageBox::StandardButton::Yes);
+
+    if(msgBox.exec() != QMessageBox::Yes) return;
+
+    Utils::clearDatabase(m_database, "TASKS");
+
+    m_clearDatabase->setEnabled(false);
 }
 
 //----------------------------------------------------------------------------
@@ -125,6 +146,7 @@ void ConfigurationDialog::connectSignals()
     connect(positionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onPositionChanged()));
     connect(&m_widget, &DesktopWidget::beingDragged, this, [this](){ positionComboBox->setCurrentIndex(0); });
     connect(opacitySpinBox, &QSpinBox::valueChanged, this, [this](int v){ m_widget.setOpacity(v); });
+    connect(m_clearDatabase, SIGNAL(pressed()), this, SLOT(onDatabaseClearPressed()));
 }
 
 //----------------------------------------------------------------------------

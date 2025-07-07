@@ -32,6 +32,8 @@ namespace Utils
     class Configuration;
 }
 
+struct sqlite3;
+
 /** \class ConfigurationDialog
  * \brief Implements the dialog to configure the application options.
  */
@@ -74,6 +76,10 @@ class ConfigurationDialog : public QDialog, private Ui::ConfigurationDialog
      */
     void onUseSoundCheckBoxChanged();
 
+    /** \brief Modifies the UI when the user changes the value of the sounds checkbox.
+     */
+    void onDatabaseClearPressed();
+
   protected:
     virtual void showEvent(QShowEvent* e) override;
 
@@ -98,7 +104,8 @@ class ConfigurationDialog : public QDialog, private Ui::ConfigurationDialog
     void setConfiguration(const Utils::Configuration &config);
 
     QList<QPoint> m_widgetPositions; /** possible fixed desktop widget positions. */
-    DesktopWidget m_widget;
+    DesktopWidget m_widget;          /** Desktop widget to show. */
+    sqlite3* m_database;             /** SQLite database pointer. */
 };
 
 #endif

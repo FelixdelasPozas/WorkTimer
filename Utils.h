@@ -280,6 +280,29 @@ namespace Utils
      *
      */
     bool exportDataExcel(const QString &filename, const TaskTableEntries &entries, bool useMilliseconds);
+
+    /** \brief Helper method to remove all row in a given table. 
+     * \param[in] db Database pointer. 
+     * \param[in] tableName Name of the table to clear.
+     *
+     */
+    void clearDatabase(sqlite3* db, const std::string &tableName);
+
+    /** \brief Returns the number of entries in a table of a database.
+     * \param[in] db Database pointer. 
+     * \param[in] tableName Name of the table to clear.
+     *
+     */
+    int numberOfEntries(sqlite3* db, const std::string &tableName);
+
+    /** \brief Helper method to create entries in the database to test functionality.
+     * \param[in] from Begin date of test data. 
+     * \param[in] to End date of test data.
+     * \param[in] tasks List of task names. 
+     *
+     */
+    TaskTableEntries generateTestData(const QDateTime &from, const QDateTime &to, const QStringList &tasks);
+
 } // namespace Utils
 
 #endif // UTILS_H_

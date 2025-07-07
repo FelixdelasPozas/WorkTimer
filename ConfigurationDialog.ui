@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>536</height>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -461,7 +461,7 @@ QGroupBox::title {
 }</string>
      </property>
      <property name="title">
-      <string>Data export</string>
+      <string>Database</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -471,6 +471,13 @@ QGroupBox::title {
         </property>
         <property name="text">
          <string>Export dates and times in milliseconds.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_clearDatabase">
+        <property name="text">
+         <string>Clear database</string>
         </property>
        </widget>
       </item>
