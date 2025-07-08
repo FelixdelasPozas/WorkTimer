@@ -28,7 +28,7 @@ Statistics about the time invested can be seen in the two charts and exported to
 ## External dependencies
 The following libraries are required:
 * [Qt 6](http://www.qt.io/).
-* [SQLite](https://www.sqlite.org/).
+* [SQLite](https://www.sqlite.org/). Included in the source directory "external".
 * [Libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter/).
 
 # Install
@@ -40,28 +40,32 @@ Supported versions are from Windows 8 onwards. Neither the application or the in
 
 The main window with the list of completed units. There are two tables, one with the work/procastination times and other (the lower one) with the task names and completed time and units. 
 
-![main]()
+![main](https://github.com/user-attachments/assets/5f4fe698-6506-4ece-9a9a-5d80448ff576)
 
 When you have completed tasks, you can get statistics in the pie and histogram charts tabs. Putting the mouse in each of the pie slice or histogram bar it will give you the total time invested in that task.
 
-![pie_graph]()
+![pie_graph](https://github.com/user-attachments/assets/41f052e3-6318-418b-b132-b087fc27cf42)
 ![hist_graph]()
 
 When you minimize the application the tray icon will show the clock (if the session has not started) or the remaining time of the task or break.
 
-![icon]()
+![icon](https://private-user-images.githubusercontent.com/12167134/463655612-e52da555-3a2c-4f4f-bbd7-881496da6a59.png)
+
+If configured, once a unit starts a motivational quote is show in a brief tray message. 
+
+![quote](https://private-user-images.githubusercontent.com/12167134/463655613-90a54497-eee4-4bd1-bd9f-efff591ec28e.png)
 
 The tray icon and context menu. 
 
-![icon_menu]()
+![icon_menu](https://github.com/user-attachments/assets/14de0743-7de5-426f-b762-e6ae497ebd9d)
 
 The configuration dialog lets you change the duration of each of the units and assign its colors. Also the configuration options for a session can be modified here (work units before a long break, number of units in a session). 
 
-![config]()
+![config](https://private-user-images.githubusercontent.com/12167134/463655614-31ebcbd0-a8b8-4cf5-a1af-79d2f02e8fdf.png)
 
-Optionally a desktop widget can be shown for the duration of the session with the name of the unit and its current progression.
+Optionally a desktop widget can be shown for the duration of the session with the name of the unit and its current progression, shown here with a 30% opacity. The widget is click-through (you cannot interact with it).
 
-![widget]()
+![widget](https://private-user-images.githubusercontent.com/12167134/463655610-49da0f26-3c47-45aa-a5dd-9e90fac24d8e.png)
 
 # Repository information
 
