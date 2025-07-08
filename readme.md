@@ -45,15 +45,15 @@ The main window with the list of completed units. There are two tables, one with
 When you have completed tasks, you can get statistics in the pie and histogram charts tabs. Putting the mouse in each of the pie slice or histogram bar it will give you the total time invested in that task.
 
 ![pie_graph](https://github.com/user-attachments/assets/41f052e3-6318-418b-b132-b087fc27cf42)
-![hist_graph]()
+![hist_graph](https://github.com/user-attachments/assets/3b5af4f7-758d-4fa7-a832-7473b55c04c2)
 
 When you minimize the application the tray icon will show the clock (if the session has not started) or the remaining time of the task or break.
 
-![icon](https://private-user-images.githubusercontent.com/12167134/463655612-e52da555-3a2c-4f4f-bbd7-881496da6a59.png)
+![icon](https://github.com/user-attachments/assets/e52da555-3a2c-4f4f-bbd7-881496da6a59)
 
 If configured, once a unit starts a motivational quote is show in a brief tray message. 
 
-![quote](https://private-user-images.githubusercontent.com/12167134/463655613-90a54497-eee4-4bd1-bd9f-efff591ec28e.png)
+![quote](https://github.com/user-attachments/assets/90a54497-eee4-4bd1-bd9f-efff591ec28e)
 
 The tray icon and context menu. 
 
@@ -61,11 +61,11 @@ The tray icon and context menu.
 
 The configuration dialog lets you change the duration of each of the units and assign its colors. Also the configuration options for a session can be modified here (work units before a long break, number of units in a session). 
 
-![config](https://private-user-images.githubusercontent.com/12167134/463655614-31ebcbd0-a8b8-4cf5-a1af-79d2f02e8fdf.png)
+![config](https://github.com/user-attachments/assets/31ebcbd0-a8b8-4cf5-a1af-79d2f02e8fdf)
 
 Optionally a desktop widget can be shown for the duration of the session with the name of the unit and its current progression, shown here with a 30% opacity. The widget is click-through (you cannot interact with it).
 
-![widget](https://private-user-images.githubusercontent.com/12167134/463655610-49da0f26-3c47-45aa-a5dd-9e90fac24d8e.png)
+![widget](https://github.com/user-attachments/assets/49da0f26-3c47-45aa-a5dd-9e90fac24d8e)
 
 # Repository information
 
