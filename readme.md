@@ -13,12 +13,14 @@ WorkTimer
 WorkTimer is a simple application for controlling procrastination and getting statistics on the time spent at work. It uses a system similar to the popular "Pomodoro" technique to intersperse breaks between work tasks.
 
 ## Options
-The timer can be configured for the work, short and long breaks. By default it uses 25 minutes for a work unit and 5 and 15 minutes for the short and long breaks. Once a session has started those options cannot be configured until the session has finished or stopped.
-If miminized the application can be configured to show a tray message informing the start of a new unit or break, with a motivational quote.
-Sounds can be enabled and disabled. When using it with headphones I find it usefull to enabled the "voice unit announcements" when working away from the computer. 
-A desktop widget can be configured to show the current task name and progress in the desktop. If minimized the same progress is show in the tray icon, but showing just the remaining minutes in the unit.
-Statistics about the time invested can be seen in the two charts and exported to CSV or Excel. 
+The timer can be configured for the work, short and long breaks. By default it uses 25 minutes for a work unit and 5 and 15 minutes for the short and long breaks. Once a session has started those options cannot be configured until the session has finished or stopped.  
 
+If miminized the application can be configured to show a tray message informing the start of a new unit or break, with a motivational quote.
+Sounds can be enabled and disabled. When using it with headphones I find it usefull to enabled the "voice unit announcements" when working away from the computer.  
+
+A desktop widget can be configured to show the current task name and progress in the desktop. If minimized the same progress is show in the tray icon, but showing just the remaining minutes in the unit.  
+
+Statistics about the time invested can be seen in the two charts and exported to CSV or Excel.  
 
 # Compilation requirements
 ## To build the tool:
